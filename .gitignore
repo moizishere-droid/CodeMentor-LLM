@@ -1,0 +1,31 @@
+# Virtual environment
+venv/
+
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Model files
+*.bin
+*.safetensors
+*.pt
+*.ckpt
+
+# Data
+data/raw/*
+data/processed/*
+data/results/*
+
+# Logs
+logs/
+*.log
+
+# W&B
+wandb/

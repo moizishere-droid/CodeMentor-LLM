@@ -1,0 +1,30 @@
+# Core ML
+torch
+transformers
+peft
+trl
+bitsandbytes
+accelerate
+datasets
+evaluate
+
+# Metrics
+rouge-score
+bert-score
+
+# Experiment Tracking
+wandb
+
+# API
+fastapi
+uvicorn
+pydantic
+
+# Database
+sqlalchemy
+
+# Utilities
+python-dotenv
+huggingface-hub
+numpy
+pandas
