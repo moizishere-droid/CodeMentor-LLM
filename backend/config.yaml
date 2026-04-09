@@ -1,7 +1,7 @@
 # Model
 model:
   base_model: "meta-llama/Meta-Llama-3-8B-Instruct"
-  hub_model_id: "YOUR_HF_USERNAME/codementor-llm"
+  hub_model_id: "Abdulmoiz123/codementor-llm"
 
 # Quantization
 quantization:
