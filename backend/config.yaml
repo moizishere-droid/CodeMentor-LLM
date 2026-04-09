@@ -1,6 +1,6 @@
 # Model
 model:
-  base_model: "mistralai/Mistral-7B-Instruct-v0.3"
+  base_model: "meta-llama/Meta-Llama-3-8B-Instruct"
   hub_model_id: "YOUR_HF_USERNAME/codementor-llm"
 
 # Quantization

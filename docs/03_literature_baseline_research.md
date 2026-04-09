@@ -1,7 +1,7 @@
 # Phase 03 — Literature & Baseline Research
 
 ## Model Tested
-- Model: mistralai/Mistral-7B-Instruct-v0.3
+- Model: meta-llama/Meta-Llama-3-8B-Instruct
 - Quantization: 4-bit QLoRA (NF4)
 - GPU: Tesla T4 — 14.56GB
 - Memory footprint after loading: 3.75GB
@@ -32,8 +32,14 @@ Fine-tuning on CodeAlpaca-20K is justified because:
 4. SFT will teach structured complete responses
 5. DPO will align model to prefer higher quality responses
 
-## Model Change
-- Originally planned: meta-llama/Llama-3-8B-Instruct
-- Changed to: mistralai/Mistral-7B-Instruct-v0.3
-- Reason: Llama-3 is gated and requires access approval
-- Mistral-7B is openly available and equally capable
+## Model Decision
+- Primary model: meta-llama/Meta-Llama-3-8B-Instruct
+- Status: Access requested — waiting for approval
+- Temporary baseline: mistralai/Mistral-7B-Instruct-v0.3
+- Baseline testing done on Mistral-7B until Llama-3 access granted
+
+## Note
+Once Llama-3-8B-Instruct access is approved:
+- Re-run baseline test on Llama-3
+- Update baseline_results.json
+- All training phases will use Llama-3-8B-Instruct
