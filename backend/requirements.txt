@@ -1,16 +1,18 @@
-# Core ML
-torch
-transformers
-peft
-trl
-bitsandbytes
-accelerate
-datasets
-evaluate
+# Core ML — verified compatible set
+torch==2.6.0
+transformers==4.49.0
+peft==0.14.0
+trl==0.15.2
+bitsandbytes==0.45.3
+accelerate==1.5.1
+datasets==3.3.2
+evaluate==0.4.2
+huggingface-hub==0.29.3
+safetensors==0.5.3
 
 # Metrics
-rouge-score
-bert-score
+rouge-score==0.1.2
+bert-score==0.3.13
 
 # Experiment Tracking
 wandb
@@ -19,12 +21,10 @@ wandb
 fastapi
 uvicorn
 pydantic
-
-# Database
 sqlalchemy
 
 # Utilities
 python-dotenv
-huggingface-hub
-numpy
-pandas
+numpy==1.26.4
+pandas==2.2.3
+matplotlib==3.10.1
