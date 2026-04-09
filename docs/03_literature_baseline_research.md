@@ -11,35 +11,43 @@
 - No fine-tuning, no system prompt
 - Results saved to data/results/baseline_results.json
 
+## Questions Tested
+1. Write a Python function to reverse a string
+2. Explain what a decorator is in Python with an example
+3. What is the difference between a list and a tuple in Python
+4. Write a Python function to check if a number is prime
+5. How do you handle exceptions in Python
+6. Write a SQL query to find the second highest salary
+7. Explain the concept of recursion with a Python example
+8. What is the difference between == and is in Python
+9. Write a Python function to find duplicates in a list
+10. Explain what a REST API is in simple terms
+
 ## Strengths of Base Model
-- Answers basic coding questions correctly
-- Formats code blocks properly
-- Gives multiple solution approaches
-- Explains concepts clearly
+- Answers all 10 coding questions correctly
+- Formats code blocks consistently
+- Gives clear step-by-step explanations
+- Handles multiple question types — Python, SQL, concepts
+- Uses bold headers to structure answers
+- Provides real world analogies for concepts
+- Better code quality compared to Mistral-7B baseline
 
 ## Weaknesses of Base Model
-- Responses cut off mid-sentence in 4/10 questions
-- No consistent response structure
-- No step-by-step teaching format
-- Inconsistent response length
+- Responses cut off mid-sentence in 5/10 questions
+- No consistent response length
 - Attention mask warning during inference
+- No specific coding instruction format
+- Sometimes over-explains simple concepts
+- SQL syntax not always compatible across databases
 
 ## Fine-Tuning Justification
-Fine-tuning on CodeAlpaca-20K is justified because:
-1. Base model lacks consistent response structure
-2. Responses cut off frequently
-3. No domain-specific coding instruction format
-4. SFT will teach structured complete responses
-5. DPO will align model to prefer higher quality responses
+1. Responses cut off frequently
+2. No consistent coding instruction format
+3. SFT on CodeAlpaca-20K will teach structured complete responses
+4. DPO will align model to prefer higher quality responses
+5. Fine-tuned model will be domain-specific and focused
 
 ## Model Decision
-- Primary model: meta-llama/Meta-Llama-3-8B-Instruct
-- Status: Access requested — waiting for approval
-- Temporary baseline: mistralai/Mistral-7B-Instruct-v0.3
-- Baseline testing done on Mistral-7B until Llama-3 access granted
-
-## Note
-Once Llama-3-8B-Instruct access is approved:
-- Re-run baseline test on Llama-3
-- Update baseline_results.json
-- All training phases will use Llama-3-8B-Instruct
+- Final confirmed model: meta-llama/Meta-Llama-3-8B-Instruct
+- Access: Granted
+- All training phases will use this model
