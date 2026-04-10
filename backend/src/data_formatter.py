@@ -21,11 +21,9 @@ def load_tokenizer(model_id: str = "meta-llama/Meta-Llama-3-8B-Instruct"):
 def format_prompt(sample: dict, tokenizer) -> dict:
     """
     Converts a CodeAlpaca sample to Llama-3 chat template format.
-
     Args:
         sample: dict with keys instruction, input, output
         tokenizer: Llama-3 tokenizer
-
     Returns:
         dict with key text containing formatted prompt
     """
@@ -55,11 +53,9 @@ def format_prompt(sample: dict, tokenizer) -> dict:
 def format_dataset(dataset, tokenizer):
     """
     Apply format_prompt to entire dataset.
-
     Args:
         dataset: HuggingFace dataset
         tokenizer: Llama-3 tokenizer
-
     Returns:
         Formatted dataset with single text column
     """
