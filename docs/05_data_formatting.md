@@ -33,6 +33,7 @@ clearly and concisely with working code examples."
 
 ## Dataset Storage
 - Formatted dataset: Abdulmoiz123/codementor-llm-formatted (HuggingFace Hub)
+- Locally: data/processed/
 - Total samples: 20,022
 - Column: text (single column containing full formatted prompt)
 

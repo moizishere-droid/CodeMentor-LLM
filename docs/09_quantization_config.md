@@ -1,7 +1,7 @@
 # Phase 09 — Quantization Config (QLoRA 4-bit NF4)
 
 ## Goal
-Load Llama-3-8B-Instruct in 4-bit NF4 quantization
+Load meta-llama/Meta-Llama-3-8B-Instruct in 4-bit NF4 quantization
 for memory efficient fine-tuning on T4 GPU.
 
 ## Quantization Config
@@ -20,10 +20,10 @@ for memory efficient fine-tuning on T4 GPU.
 - Free for training: 7.39 GB
 
 ## Model Architecture
-- q_proj : Linear4bit(4096, 4096)
-- k_proj : Linear4bit(4096, 1024)
-- v_proj : Linear4bit(4096, 1024)
-- o_proj : Linear4bit(4096, 4096)
+- q_proj   : Linear4bit(4096, 4096)
+- k_proj   : Linear4bit(4096, 1024)
+- v_proj   : Linear4bit(4096, 1024)
+- o_proj   : Linear4bit(4096, 4096)
 - gate_proj: Linear4bit(4096, 14336)
 - up_proj  : Linear4bit(4096, 14336)
 - down_proj: Linear4bit(14336, 4096)

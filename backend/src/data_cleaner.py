@@ -8,6 +8,7 @@ from datasets import Dataset
 
 
 def remove_duplicates(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    
     """
     Remove duplicate rows from dataset.
     Args:
@@ -15,6 +16,7 @@ def remove_duplicates(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
     Returns:
         tuple of cleaned DataFrame and count of removed rows
     """
+    
     original_count = len(df)
     df_deduped = df.drop_duplicates(subset=["text"])
     removed = original_count - len(df_deduped)
@@ -22,6 +24,7 @@ def remove_duplicates(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
 
 
 def remove_nulls(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    
     """
     Remove null and empty rows from dataset.
     Args:
@@ -29,6 +32,7 @@ def remove_nulls(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
     Returns:
         tuple of cleaned DataFrame and count of removed rows
     """
+    
     original_count = len(df)
     df_clean = df.dropna(subset=["text"])
     df_clean = df_clean[df_clean["text"] != ""]
@@ -38,6 +42,7 @@ def remove_nulls(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
 
 def filter_by_token_length(df: pd.DataFrame,tokenizer,min_tokens: int = 10,
                            max_tokens: int = 2048) -> tuple[pd.DataFrame, int]:
+    
     """
     Filter samples by token length.
     Args:
@@ -48,6 +53,7 @@ def filter_by_token_length(df: pd.DataFrame,tokenizer,min_tokens: int = 10,
     Returns:
         tuple of filtered DataFrame and count of removed rows
     """
+    
     original_count = len(df)
     df["token_length"] = df["text"].apply(
         lambda x: len(tokenizer(x)["input_ids"])
@@ -61,6 +67,7 @@ def filter_by_token_length(df: pd.DataFrame,tokenizer,min_tokens: int = 10,
 
 
 def is_low_quality(text: str) -> bool:
+
     """
     Check if a sample is low quality.
     Low quality = assistant response shorter than 3 words.
@@ -69,6 +76,7 @@ def is_low_quality(text: str) -> bool:
     Returns:
         True if low quality, False otherwise
     """
+
     if "<|start_header_id|>assistant<|end_header_id|>" in text:
         response = text.split("<|start_header_id|>assistant<|end_header_id|>")[-1]
         response = response.replace("<|eot_id|>", "").strip()
@@ -78,6 +86,7 @@ def is_low_quality(text: str) -> bool:
 
 
 def filter_low_quality(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+
     """
     Remove low quality samples from dataset.
     Args:
@@ -85,6 +94,7 @@ def filter_low_quality(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
     Returns:
         tuple of filtered DataFrame and count of removed rows
     """
+
     original_count = len(df)
     df["is_low_quality"] = df["text"].apply(is_low_quality)
     df_filtered = df[df["is_low_quality"] == False].drop(
@@ -95,6 +105,7 @@ def filter_low_quality(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
 
 
 def clean_dataset(df: pd.DataFrame, tokenizer) -> tuple[pd.DataFrame, dict]:
+
     """
     Run full cleaning pipeline on dataset.
     Args:
@@ -103,6 +114,7 @@ def clean_dataset(df: pd.DataFrame, tokenizer) -> tuple[pd.DataFrame, dict]:
     Returns:
         tuple of cleaned DataFrame and cleaning log
     """
+
     cleaning_log = {}
     cleaning_log["original"] = len(df)
 

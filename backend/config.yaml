@@ -1,9 +1,8 @@
-# Model
 model:
   base_model: "meta-llama/Meta-Llama-3-8B-Instruct"
   hub_model_id: "Abdulmoiz123/codementor-llm"
 
-# Quantization
+# Quantization --> QLoRA
 quantization:
   load_in_4bit: true
   bnb_4bit_quant_type: "nf4"
@@ -27,7 +26,7 @@ lora:
 sft_training:
   dataset_id: "sahil2801/CodeAlpaca-20k"
   output_dir: "./checkpoints/sft"
-  num_train_epochs: 3
+  num_train_epochs: 1 # due to limitations of resources, you can increase this for better performance
   per_device_train_batch_size: 4
   gradient_accumulation_steps: 4
   learning_rate: 2e-4

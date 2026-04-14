@@ -1,7 +1,7 @@
 # Phase 10 — LoRA Adapter Configuration
 
 ## Goal
-Apply LoRA adapter to quantized Llama-3-8B-Instruct
+Apply LoRA adapter to quantized meta-llama/Meta-Llama-3-8B-Instruct
 for parameter efficient fine-tuning.
 
 ## LoRA Config
@@ -33,7 +33,6 @@ for parameter efficient fine-tuning.
 ## Checkpoint Test
 - adapter_model.safetensors — LoRA adapter weights
 - adapter_config.json — LoRA configuration
-- README.md — model card
 - Only adapter files saved — not full 16GB model
 
 ## QLoRA Summary

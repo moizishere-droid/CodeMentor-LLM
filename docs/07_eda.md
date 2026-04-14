@@ -59,4 +59,4 @@
 - data/results/token_length_distribution.png
 - data/results/response_length_distribution.png
 - data/results/topic_balance.png
-- data\results\top_20_keywords.png
+- data/results/top_20_keywords.png

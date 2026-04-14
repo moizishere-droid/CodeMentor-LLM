@@ -45,7 +45,6 @@
 ## Configuration Files
 - backend/config.yaml — all model, training, inference configs
 - .env — environment variables (gitignored)
-- .env.example — template for environment variables
 
 ## GPU Training
 - Local machine: no GPU — used for non-GPU phases only

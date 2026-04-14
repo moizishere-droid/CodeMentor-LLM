@@ -19,7 +19,6 @@
 - Format: Alpaca
 
 ## Combined Stats
-- Total samples: 38,634
 - Both datasets in Alpaca format
 - Both compatible with Llama-3 chat template
 

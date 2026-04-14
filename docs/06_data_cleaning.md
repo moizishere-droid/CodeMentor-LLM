@@ -38,7 +38,7 @@ to remove low quality samples before training.
 
 ## Dataset Storage
 - Cleaned dataset: Abdulmoiz123/codementor-llm-cleaned (HuggingFace Hub)
-- Local: data/processed/cleaned_dataset.jsonl
+- Local: data/processed/
 - Total samples: 19,024
 - Column: text
 

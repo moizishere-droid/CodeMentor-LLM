@@ -19,10 +19,7 @@
 
 ## Dataset Storage
 - HuggingFace Hub: Abdulmoiz123/codementor-llm-splits
-- Local:
-  - data/processed/train.jsonl
-  - data/processed/validation.jsonl
-  - data/processed/test.jsonl
+- Local: data/processed/
 
 ## Key Decisions
 - Fixed seed 42 for reproducibility
