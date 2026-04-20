@@ -16,9 +16,9 @@ to remove low quality samples before training.
 - Samples removed: 0
 
 ### Step 3 — Token Length Filter
-- Min tokens: 46
-- Max tokens: 1174
-- Mean tokens: 116.79
+- Min tokens: 66
+- Max tokens: 1194
+- Mean tokens: 136.79
 - Filter range: 10 to 2048 tokens
 - Samples removed: 0
 

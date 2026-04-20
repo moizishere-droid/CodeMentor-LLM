@@ -1,7 +1,7 @@
 # Phase 09 — Quantization Config (QLoRA 4-bit NF4)
 
 ## Goal
-Load meta-llama/Meta-Llama-3-8B-Instruct in 4-bit NF4 quantization
+Load meta-llama/Llama-3.2-3B-Instruct in 4-bit NF4 quantization
 for memory efficient fine-tuning on T4 GPU.
 
 ## Quantization Config
@@ -13,20 +13,20 @@ for memory efficient fine-tuning on T4 GPU.
 ## Memory Results
 - GPU              : Tesla T4
 - Total GPU Memory : 14.56 GB
-- Original model   : ~16 GB (full precision)
-- After 4-bit quant: 5.21 GB
-- After k-bit prep : 7.17 GB
-- Memory reduction : 68%
-- Free for training: 7.39 GB
+- Original model   : ~6.1 GB (full precision)
+- After 4-bit quant: 2.05 GB
+- After k-bit prep : 2.78 GB
+- Memory reduction : 54.4%
+- Free for training: 11.78 GB
 
 ## Model Architecture
-- q_proj   : Linear4bit(4096, 4096)
-- k_proj   : Linear4bit(4096, 1024)
-- v_proj   : Linear4bit(4096, 1024)
-- o_proj   : Linear4bit(4096, 4096)
-- gate_proj: Linear4bit(4096, 14336)
-- up_proj  : Linear4bit(4096, 14336)
-- down_proj: Linear4bit(14336, 4096)
+- q_proj   : Linear4bit(3072, 3072)
+- k_proj   : Linear4bit(3072, 1024)
+- v_proj   : Linear4bit(3072, 1024)
+- o_proj   : Linear4bit(3072, 3072)
+- gate_proj: Linear4bit(3072, 8192)
+- up_proj  : Linear4bit(3072, 8192)
+- down_proj: Linear4bit(8192, 3072)
 
 ## Target Modules for LoRA
 - q_proj

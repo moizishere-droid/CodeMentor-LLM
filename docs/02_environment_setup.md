@@ -48,7 +48,7 @@
 
 ## GPU Training
 - Local machine: no GPU — used for non-GPU phases only
-- Google Colab: T4/A100 — used for training phases (9–16)
+- Google Colab: T4 — used for training phases (9–16)
 
 ## Notes
 - bitsandbytes requires Linux/Colab for GPU quantization

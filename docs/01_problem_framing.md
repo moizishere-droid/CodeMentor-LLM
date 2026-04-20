@@ -4,7 +4,7 @@
 CodeMentor-LLM
 
 ## Base Model
-meta-llama/Meta-Llama-3-8B-Instruct (already smart, but generic)
+meta-llama/Llama-3.2-3B-Instruct (already smart, but generic)
 
 ## Task
 General Coding Q&A — explain code, debug errors, write code snippets

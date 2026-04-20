@@ -12,7 +12,7 @@ SYSTEM_PROMPT = (
 )
 
 
-def load_tokenizer(model_id: str = "meta-llama/Meta-Llama-3-8B-Instruct"):
+def load_tokenizer(model_id: str = "meta-llama/Llama-3.2-3B-Instruct"):
     """Load Llama-3 tokenizer."""
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     return tokenizer

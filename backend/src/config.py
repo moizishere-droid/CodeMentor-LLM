@@ -9,7 +9,7 @@ from peft import LoraConfig, TaskType
 
 
 # Model Config
-MODEL_ID = "meta-llama/Meta-Llama-3-8B-Instruct"
+MODEL_ID = "meta-llama/Llama-3.2-3B-Instruct"
 HUB_MODEL_ID = "Abdulmoiz123/codementor-llm"
 
 # Quantization Config (QLoRA 4-bit NF4)
@@ -58,7 +58,7 @@ DPO_CONFIG = {
     "beta": 0.1,
     "learning_rate": 5e-5,
     "num_train_epochs": 1,
-    "per_device_train_batch_size": 2,
+    "per_device_train_batch_size": 4,
     "gradient_accumulation_steps": 4,
     "fp16": True,
     "logging_steps": 10,

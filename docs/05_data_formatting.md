@@ -23,10 +23,10 @@ clearly and concisely with working code examples."
 - Always include assistant output
 
 ## Token Length Analysis
-- Min tokens  : 46
-- Max tokens  : 1174
-- Mean tokens : 116.79
-- Median      : 102.0
+- Min tokens  : 66
+- Max tokens  : 1194
+- Mean tokens : 136.79
+- Median      : 122.0
 - Samples under 2048 tokens : 20,022 (100%)
 - Samples over 2048 tokens  : 0 (0%)
 - All samples within Llama-3 context window — no filtering needed

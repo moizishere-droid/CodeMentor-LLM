@@ -151,7 +151,7 @@ if __name__ == "__main__":
 
     # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(
-        "meta-llama/Meta-Llama-3-8B-Instruct"
+        "meta-llama/Llama-3.2-3B-Instruct"
     )
 
     # Load formatted dataset

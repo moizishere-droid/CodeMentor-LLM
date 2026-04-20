@@ -1,7 +1,7 @@
 # Phase 03 — Literature & Baseline Research
 
 ## Model Tested
-- Model: meta-llama/Meta-Llama-3-8B-Instruct
+- Model: meta-llama/Llama-3.2-3B-Instruct
 - Quantization: 4-bit QLoRA (NF4)
 - GPU: Tesla T4 — 14.56GB
 - Memory footprint after loading: 5.21GB
@@ -24,30 +24,31 @@
 10. Explain what a REST API is in simple terms
 
 ## Strengths:
-- Answers all 10 questions correctly
+- Answers all 10 coding questions correctly
 - Formats code blocks consistently with backticks
-- Gives step-by-step explanations (Q4, Q7)
-- Provides multiple solution approaches (Q1 — slice + reversed)
-- Uses bold headers to structure answers (Q3, Q8)
-- Handles Python, SQL, and conceptual questions
-- Good real-world analogies (Q10 — restaurant analogy)
-- Proper error handling examples (Q5 — try/except/else)
+- Includes docstrings in code (Q1, Q4, Q9) — good practice
+- Uses bold headers and structured sections (Q2, Q4, Q6)
+- Provides real-world analogies (Q10 — restaurant analogy)
+- SQL answer uses DENSE_RANK() — more accurate than 8B version
+- Correct identity operator examples (Q8)
+- Handles Python, SQL, and conceptual questions well
 
 ## Weaknesses:
-- Responses cut off mid-sentence in 6/10 questions (Q2, Q3, Q4, Q7, Q8, Q9)
+- Responses cut off mid-sentence in 5/10 questions (Q2, Q3, Q4, Q7, Q8)
 - No consistent response length
 - Attention mask warning on every inference
-- No domain-specific coding instruction format
-- Sometimes over-explains simple concepts
-- Q8 has wrong example — `[1,2,3] == [1,2,3]` returns `True` not `False`
-- Q10 wrong full form — "Representational State of Mind" instead of "Representational State Transfer"
+- No specific coding instruction format
+- Q10 wrong full form — "Representational State of Resource" instead of "Representational State Transfer"
+- Over-explains simple concepts (Q9)
+- Inconsistent output quality compared to larger models
 
-## Key Issues Justifying Fine-Tuning:
-1. Responses cut off in 60% of questions — major quality issue
-2. Factual errors present (Q8, Q10)
-3. No consistent teaching structure
-4. SFT will teach complete structured responses
+### Why Fine-Tuning is justified:
+1. Responses cut off in 50% of questions
+2. Factual errors present (Q10 wrong full form)
+3. No consistent coding instruction format
+4. SFT on CodeAlpaca-20K will teach complete structured responses
 5. DPO will align model to prefer accurate higher quality responses
+6. Fine-tuned model will be domain-specific and focused
 
 ## Model Decision
 - Final confirmed model: meta-llama/Meta-Llama-3-8B-Instruct

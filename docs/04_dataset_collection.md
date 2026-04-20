@@ -39,5 +39,5 @@
 
 ## Dataset Decision
 - Primary dataset CodeAlpaca-20K will be used for SFT training
-- Backup dataset will be used if more data is needed
+- Backup dataset will be used if more data is needed (not in this project right now)
 - Both datasets are open source and free to use

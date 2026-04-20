@@ -1,5 +1,5 @@
 model:
-  base_model: "meta-llama/Meta-Llama-3-8B-Instruct"
+  base_model: "meta-llama/Llama-3.2-3B-Instruct"
   hub_model_id: "Abdulmoiz123/codementor-llm"
 
 # Quantization --> QLoRA
@@ -21,12 +21,15 @@ lora:
     - "k_proj"
     - "o_proj"
   task_type: "CAUSAL_LM"
+  trainable_params: 13631488
+  total_params: 8043892736
+  trainable_percentage: 0.17
 
 # SFT Training
 sft_training:
-  dataset_id: "sahil2801/CodeAlpaca-20k"
+  dataset_id: "Abdulmoiz123/codementor-llm-splits"
   output_dir: "./checkpoints/sft"
-  num_train_epochs: 1 # due to limitations of resources, you can increase this for better performance
+  num_train_epochs: 3
   per_device_train_batch_size: 4
   gradient_accumulation_steps: 4
   learning_rate: 2e-4
@@ -37,18 +40,22 @@ sft_training:
   save_strategy: "epoch"
   max_seq_length: 2048
   report_to: "wandb"
+  push_to_hub: true
+  hub_model_id: "Abdulmoiz123/codementor-llm-sft"
 
 # DPO Training
 dpo_training:
   output_dir: "./checkpoints/dpo"
   beta: 0.1
   learning_rate: 5e-5
-  num_train_epochs: 1
-  per_device_train_batch_size: 2
+  num_train_epochs: 1 # More than 1 epoch causes overfitting on preference pairs and degrades model quality
+  per_device_train_batch_size: 4
   gradient_accumulation_steps: 4
   fp16: true
   logging_steps: 10
   report_to: "wandb"
+  push_to_hub: true
+  hub_model_id: "Abdulmoiz123/codementor-llm-dpo"
 
 # Inference
 inference:

@@ -5,10 +5,10 @@
 - Total samples: 19,024
 
 ## Token Length Analysis
-- Min    : 48
-- Max    : 1,174
-- Mean   : 119.42
-- Median : 105.0
+- Min    : 68
+- Max    : 1,194
+- Mean   : 139.42
+- Median : 125.0
 - Std    : 58.76
 - All samples within 2048 token limit
 

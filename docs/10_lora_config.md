@@ -13,10 +13,10 @@ for parameter efficient fine-tuning.
 - task_type      : CAUSAL_LM
 
 ## Trainable Parameters
-- Trainable params : 13,631,488 (13.6M)
-- Total params     : 8,043,892,736 (8.04B)
-- Trainable %      : 0.17%
-- Frozen params    : 99.83% (base model weights)
+- Trainable params : 9,175,040
+- Total params     : 3,221,924,864
+- Trainable %      : 0.2848
+- Frozen params    : 99.71% (base model weights)
 
 ## Why These Target Modules
 - q_proj — query projection — learns what to attend to
@@ -28,18 +28,18 @@ for parameter efficient fine-tuning.
 - r=16 — good balance between capacity and efficiency
 - alpha=32 — scaling factor = alpha/r = 2.0
 - Higher alpha = stronger LoRA influence on model output
-- r=16 is standard for 7-8B models on T4 GPU
+- r=16 is standard for 3B models on T4 GPU
 
 ## Checkpoint Test
 - adapter_model.safetensors — LoRA adapter weights
 - adapter_config.json — LoRA configuration
-- Only adapter files saved — not full 16GB model
+- Only adapter files saved — not full 6GB model
 
 ## QLoRA Summary
-- Base model frozen in 4-bit (5.21 GB)
+- Base model frozen in 4-bit (2.05 GB)
 - LoRA adapters trainable (~100 MB)
-- Total memory: 7.17 GB
-- Free for training: 7.39 GB
+- Total memory: 2.78 GB
+- Free for training: 11.78 GB
 
 ## Source File
 - backend/src/config.py
