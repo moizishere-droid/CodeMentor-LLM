@@ -1,0 +1,65 @@
+{
+    "model": "meta-llama/Llama-3.2-3B-Instruct",
+    "type": "base_model_no_finetuning",
+    "results": [
+        {
+            "question": "Write a Python function to reverse a string.",
+            "response": "def reverse_string(s):\n    \"\"\"\n    Reverses a given string.\n\n    Args:\n        s (str): The string to be reversed.\n\n    Returns:\n        str: The reversed string.\n    \"\"\"\n    return s[::-1]"
+        },
+        {
+            "question": "Explain what a decorator is in Python with an example.",
+            "response": "**Decorators in Python**\n========================\n\nA decorator is a special type of function in Python that can modify or extend the behavior of another function. They are often used for logging, authentication, and other types of functionality that need to be applied to multiple functions.\n\n**Basic Decorator Example**\n---------------------------\n\nHere's a simple example of a decorator that prints a message before and after executing a function:\n```python\ndef my_decorator(func):\n    def wrapper():\n        print(\"Before function execution\")\n        func()\n        print(\"After function execution\")\n    return wrapper\n\n@my_decorator\ndef say_hello():\n    print(\"Hello!\")\n\nsay_hello()\n```\nIn this example, `my_decorator` is a function that takes another function (`func`) as an argument. It returns a new function (`wrapper`) that \"wraps\" the original function. The `@my_decorator` line above the `say_hello` function definition is just a shortcut for `say_hello = my_decorator(say_hello)`.\n\nWhen you call `say_hello()`, it actually calls the `wrapper` function returned by `my_decorator`, which prints the message before and after executing the original `say_hello` function.\n\n**Real-World Use Cases**\n-----------------------\n\nDecorators have many practical applications, such"
+        },
+        {
+            "question": "What is the difference between a list and a tuple in Python?",
+            "response": "In Python, lists and tuples are both data structures that can store multiple values. However, there are significant differences between them.\n\n**Lists**\n\nLists are ordered collections of items that can be of any data type, including strings, integers, floats, and other lists. They are defined using square brackets `[]` and are mutable, meaning they can be modified after creation.\n\nHere's an example of a list:\n```python\nmy_list = [1, 2, 3, \"hello\", 4.5]\n```\nYou can modify a list using methods like `append()`, `insert()`, `remove()`, etc.\n\n**Tuples**\n\nTuples, on the other hand, are also ordered collections of items, but they are immutable, meaning they cannot be modified after creation.\n\nHere's an example of a tuple:\n```python\nmy_tuple = (1, 2, 3, \"hello\", 4.5)\n```\nTuples are defined using parentheses `()` and cannot be modified after creation.\n\n**Key differences**\n\nHere are the main differences between lists and tuples:\n\n* **Mutability**: Lists are mutable, while tuples are immutable.\n* **Syntax**: Lists are defined using square brackets `[]`, while tuples are defined using parentheses"
+        },
+        {
+            "question": "Write a Python function to check if a number is prime.",
+            "response": "**Prime Number Checker Function**\n=====================================\n\nHere's a simple Python function that checks if a given number is prime:\n\n```python\ndef is_prime(n):\n    \"\"\"\n    Checks if a number is prime.\n\n    Args:\n        n (int): The number to check.\n\n    Returns:\n        bool: True if the number is prime, False otherwise.\n    \"\"\"\n    if n <= 1:\n        return False\n    if n == 2:\n        return True\n    if n % 2 == 0:\n        return False\n    max_divisor = int(n**0.5) + 1\n    for d in range(3, max_divisor, 2):\n        if n % d == 0:\n            return False\n    return True\n```\n\n**Explanation**\n---------------\n\nThis function works by checking divisibility of the input number `n` by all odd numbers up to its square root. If `n` is divisible by any of these numbers, it's not prime.\n\nHere's a step-by-step breakdown of the function:\n\n1.  If `n` is less than or equal to 1, it's not prime, so return `False`.\n2.  If `n` is 2, it's the"
+        },
+        {
+            "question": "How do you handle exceptions in Python? Show an example.",
+            "response": "In Python, exceptions are used to handle runtime errors or unexpected events. Here's an example of how to handle exceptions in Python:\n\n```python\ndef divide_numbers(num1, num2):\n    try:\n        # Attempt to divide the numbers\n        result = num1 / num2\n        print(f\"The result is: {result}\")\n    except ZeroDivisionError:\n        # Handle the exception when the user tries to divide by zero\n        print(\"Error: You cannot divide by zero!\")\n    except TypeError:\n        # Handle the exception when the user tries to divide a string by a number\n        print(\"Error: You cannot divide a string by a number!\")\n    except Exception as e:\n        # Handle any other unexpected errors\n        print(f\"An error occurred: {e}\")\n\n# Test the function\ndivide_numbers(10, 2)\ndivide_numbers(10, 0)\ndivide_numbers(\"10\", 2)\n```\n\nIn this example, we define a function `divide_numbers` that attempts to divide two numbers. We use a `try` block to enclose the code that might raise an exception. If an exception is raised, we use an `except` block to catch the exception and handle it.\n\nWe handle three types of exceptions:\n\n1"
+        },
+        {
+            "question": "Write a SQL query to find the second highest salary from a table.",
+            "response": "**SQL Query to Find the Second Highest Salary**\n\nYou can use the following SQL query to find the second highest salary from a table:\n\n```sql\nSELECT DISTINCT salary\nFROM table_name\nORDER BY salary DESC\nLIMIT 1 OFFSET 1;\n```\n\nHowever, this query might not be accurate for all tables, especially if the table has duplicate salaries. A more accurate approach is to use the `DENSE_RANK()` function:\n\n```sql\nSELECT DISTINCT salary\nFROM (\n  SELECT DISTINCT salary,\n    DENSE_RANK() OVER (ORDER BY salary DESC) AS rank\n  FROM table_name\n) AS subquery\nWHERE rank = 2;\n```\n\nIn this query:\n\n- `DENSE_RANK()` assigns a rank to each distinct salary based on its value in descending order.\n- The outer `SELECT` statement selects the second highest salary by filtering for rows with a rank of 2.\n\n**Example Use Case**\n\nSuppose we have a table named `employees` with the following data:\n\n| id | name | salary |\n|----|------|--------|\n| 1  | John | 50000  |\n| 2  | Jane | 60000  |\n| 3  | Joe  | 40000  |\n| 4"
+        },
+        {
+            "question": "Explain the concept of recursion with a Python example.",
+            "response": "Recursion is a fundamental concept in programming where a function calls itself repeatedly until it reaches a base case that stops the recursion. Here's a Python example to illustrate the concept of recursion:\n\n### Factorial Function with Recursion\n\nThe factorial of a number `n` (denoted as `n!`) is the product of all positive integers less than or equal to `n`. We can implement a recursive function to calculate the factorial of a number.\n\n```python\ndef factorial(n):\n    \"\"\"\n    Calculate the factorial of a number using recursion.\n\n    Args:\n        n (int): The number for which to calculate the factorial.\n\n    Returns:\n        int: The factorial of n.\n    \"\"\"\n    # Base case: factorial of 0 or 1 is 1\n    if n == 0 or n == 1:\n        return 1\n    # Recursive case: n! = n * (n-1)!\n    else:\n        return n * factorial(n-1)\n\n# Example usage:\nprint(factorial(5))  # Output: 120\n```\n\nIn this example, the `factorial` function calls itself with a decreasing value of `n` until it reaches the base case where `n` is 0 or 1. At"
+        },
+        {
+            "question": "What is the difference between == and is in Python?",
+            "response": "In Python, `==` and `is` are two different comparison operators used to compare values and objects.\n\n### `==` (Equality Operator)\n\nThe `==` operator checks whether the values of two objects are equal. It compares the values of the objects, not their identities.\n\n```python\nx = 5\ny = 5\n\nprint(x == y)  # Output: True\n```\n\nIn this example, `x` and `y` have the same value (5), so `x == y` returns `True`.\n\n### `is` (Identity Operator)\n\nThe `is` operator checks whether the objects being compared are the same instance. It checks whether the two objects refer to the same memory location.\n\n```python\nx = [1, 2, 3]\ny = [1, 2, 3]\n\nprint(x is y)  # Output: False\n```\n\nIn this example, `x` and `y` are two separate lists, so `x is y` returns `False`. However,\n\n```python\nx = y = [1, 2, 3]\n\nprint(x is y)  # Output: True\n```\n\nIn this case, both `x` and `y` refer"
+        },
+        {
+            "question": "Write a Python function to find duplicates in a list.",
+            "response": "**Finding Duplicates in a List**\n=====================================\n\nHere's a Python function that uses a set to efficiently find duplicates in a list.\n\n```python\ndef find_duplicates(lst):\n    \"\"\"\n    Finds duplicates in a list.\n\n    Args:\n    lst (list): The input list.\n\n    Returns:\n    list: A list of duplicate elements.\n    \"\"\"\n    seen = set()\n    duplicates = set()\n\n    for element in lst:\n        if element in seen:\n            duplicates.add(element)\n        seen.add(element)\n\n    return list(duplicates)\n\n# Example usage:\nnumbers = [1, 2, 3, 4, 2, 7, 8, 9, 2, 1]\nprint(find_duplicates(numbers))  # Output: [2]\n```\n\n**Explanation:**\n\n1. We create two sets, `seen` and `duplicates`. The `seen` set keeps track of elements we've already seen, while the `duplicates` set stores the duplicate elements.\n2. We iterate over the input list `lst`.\n3. For each element, we check if it's already in the `seen` set. If it is, we add it to the `duplicates` set.\n4. We add the current element"
+        },
+        {
+            "question": "Explain what a REST API is in simple terms.",
+            "response": "A REST API (Representational State of Resource) is a way for different software systems to communicate with each other over the internet.\n\nImagine you're at a restaurant. You want to order food, so you give your order to the waiter. The waiter takes your order and gives it to the kitchen. The kitchen then prepares your food, and the waiter brings it back to you.\n\nIn this scenario:\n\n* The restaurant is like a system (like a web application).\n* The waiter is like an API (Application Programming Interface).\n* Your order is like a request to the API (e.g., \"Give me the recipe for a burger\").\n* The kitchen is like the system's database (where the recipe is stored).\n* The prepared food is like the response from the API (e.g., \"Here's the recipe for a burger\").\n\nHere's how it works:\n\n1. You send a request to the API (e.g., \"Get the recipe for a burger\").\n2. The API sends the request to the system's database (the kitchen).\n3. The system's database responds with the recipe (the prepared food).\n4. The API sends the recipe back to you (the waiter).\n\nIn the same way, a REST API allows different software systems to communicate with each"
+        }
+    ],
+    "observations": {
+        "strengths": [
+            "Answers all 10 questions correctly",
+            "Formats code blocks with backticks",
+            "Includes docstrings in code",
+            "Uses bold headers and structured sections",
+            "SQL uses DENSE_RANK \u2014 more accurate",
+            "Handles Python, SQL, concepts well"
+        ],
+        "weaknesses": [
+            "Responses cut off in 5/10 questions",
+            "No consistent response length",
+            "Attention mask warning on every inference",
+            "No coding instruction format",
+            "Factual error in Q10 \u2014 wrong REST full form",
+            "Over-explains simple concepts"
+        ],
+        "finetuning_justified": true
+    }
+}
