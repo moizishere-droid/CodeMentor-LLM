@@ -1,0 +1,42 @@
+{
+    "model": "Abdulmoiz123/codementor-llm-sft",
+    "base_model": "meta-llama/Llama-3.2-3B-Instruct",
+    "test_samples": 50,
+    "rouge_scores": {
+        "base": {
+            "rouge1": 0.2258,
+            "rouge2": 0.1072,
+            "rougeL": 0.1749
+        },
+        "sft": {
+            "rouge1": 0.2585,
+            "rouge2": 0.1545,
+            "rougeL": 0.2256
+        }
+    },
+    "bert_scores": {
+        "base": {
+            "precision": 0.8037,
+            "recall": 0.8736,
+            "f1": 0.8366
+        },
+        "sft": {
+            "precision": 0.7989,
+            "recall": 0.8798,
+            "f1": 0.8363
+        }
+    },
+    "observations": {
+        "strengths": [
+            "Concise direct code answers",
+            "Correct syntax for simple tasks",
+            "ROUGE scores improved across all metrics"
+        ],
+        "weaknesses": [
+            "Repetitive output loops",
+            "Hallucinating outputs on complex tasks",
+            "Base model better for explanations"
+        ],
+        "root_cause": "Only 5K training samples \u2014 more data needed"
+    }
+}
