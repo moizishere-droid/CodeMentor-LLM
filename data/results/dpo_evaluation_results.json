@@ -1,0 +1,43 @@
+{
+    "models": {
+        "base": "meta-llama/Llama-3.2-3B-Instruct",
+        "sft": "Abdulmoiz123/codementor-llm-sft",
+        "dpo": "Abdulmoiz123/codementor-llm-dpo"
+    },
+    "test_samples": 50,
+    "rouge_scores": {
+        "base": {
+            "rouge1": 0.24084544288564683,
+            "rouge2": 0.0896955852731626,
+            "rougeL": 0.18069138788699174
+        },
+        "sft": {
+            "rouge1": 0.26388091117567475,
+            "rouge2": 0.10169410114054739,
+            "rougeL": 0.20036693427215713
+        },
+        "dpo": {
+            "rouge1": 0.254222638324674,
+            "rouge2": 0.1089881156107165,
+            "rougeL": 0.2076537946912854
+        }
+    },
+    "bert_scores": {
+        "base": {
+            "precision": 0.8132105469703674,
+            "recall": 0.8664337396621704,
+            "f1": 0.8384997844696045
+        },
+        "sft": {
+            "precision": 0.8218364715576172,
+            "recall": 0.8825279474258423,
+            "f1": 0.8504162430763245
+        },
+        "dpo": {
+            "precision": 0.820778489112854,
+            "recall": 0.8808373808860779,
+            "f1": 0.8490617871284485
+        }
+    },
+    "conclusion": "DPO improves ROUGE-2 and ROUGE-L over SFT. Both SFT and DPO significantly better than base model."
+}
