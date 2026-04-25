@@ -164,5 +164,93 @@ def evaluate(adapter_id: str, n_samples: int = 50):
     return results
 
 
+def evaluate_three_way(sft_adapter_id: str,dpo_adapter_id: str,n_samples: int = 50):
+    """
+    Run three-way evaluation — Base vs SFT vs DPO.
+    Args:
+        sft_adapter_id: HuggingFace Hub SFT adapter ID
+        dpo_adapter_id: HuggingFace Hub DPO adapter ID
+        n_samples: number of test samples
+    """
+    # Load tokenizer and model
+    tokenizer = load_tokenizer(MODEL_ID)
+    model = load_sft_model(MODEL_ID, dpo_adapter_id)
+
+    # Load test dataset
+    dataset = load_dataset("Abdulmoiz123/codementor-llm-splits")
+    test_dataset = dataset["test"].select(range(n_samples))
+
+    # Extract instructions and references
+    instructions = [extract_instruction(s["text"]) for s in test_dataset]
+    references = [extract_reference(s["text"]) for s in test_dataset]
+
+    # Generate DPO predictions
+    print("Generating DPO predictions...")
+    dpo_predictions = [
+        generate_response(model, tokenizer, inst)
+        for inst in instructions
+    ]
+
+    # Generate SFT predictions
+    print("Generating SFT predictions...")
+    model.load_adapter(sft_adapter_id, adapter_name="sft")
+    model.set_adapter("sft")
+    sft_predictions = [
+        generate_response(model, tokenizer, inst)
+        for inst in instructions
+    ]
+
+    # Generate base predictions
+    print("Generating base predictions...")
+    model.disable_adapter_layers()
+    base_predictions = [
+        generate_response(model, tokenizer, inst)
+        for inst in instructions
+    ]
+    model.enable_adapter_layers()
+
+    # Compute metrics
+    base_rouge = compute_rouge(base_predictions, references)
+    sft_rouge  = compute_rouge(sft_predictions, references)
+    dpo_rouge  = compute_rouge(dpo_predictions, references)
+    base_bert  = compute_bertscore(base_predictions, references)
+    sft_bert   = compute_bertscore(sft_predictions, references)
+    dpo_bert   = compute_bertscore(dpo_predictions, references)
+
+    # Save results
+    results = {
+        "models": {
+            "base": MODEL_ID,
+            "sft": sft_adapter_id,
+            "dpo": dpo_adapter_id
+        },
+        "test_samples": n_samples,
+        "rouge_scores": {
+            "base": base_rouge,
+            "sft": sft_rouge,
+            "dpo": dpo_rouge
+        },
+        "bert_scores": {
+            "base": base_bert,
+            "sft": sft_bert,
+            "dpo": dpo_bert
+        }
+    }
+
+    with open("data/results/dpo_evaluation_results.json", "w") as f:
+        json.dump(results, f, indent=4)
+
+    print("\nThree-way Evaluation Complete")
+    print(f"ROUGE-L: Base={base_rouge['rougeL']:.4f} SFT={sft_rouge['rougeL']:.4f} DPO={dpo_rouge['rougeL']:.4f}")
+    print(f"BERTScore F1: Base={base_bert['f1']:.4f} SFT={sft_bert['f1']:.4f} DPO={dpo_bert['f1']:.4f}")
+
+    return results
+
 if __name__ == "__main__":
     evaluate("Abdulmoiz123/codementor-llm-sft")
+    
+    # Three-way evaluation
+    evaluate_three_way(
+        sft_adapter_id="Abdulmoiz123/codementor-llm-sft",
+        dpo_adapter_id="Abdulmoiz123/codementor-llm-dpo"
+    )
