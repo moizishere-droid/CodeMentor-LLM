@@ -7,7 +7,7 @@ for coding questions.
 import time
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-from config import MODEL_ID, INFERENCE_CONFIG, SYSTEM_PROMPT
+from src.config import MODEL_ID, INFERENCE_CONFIG, SYSTEM_PROMPT
 
 # Merged model ID
 MERGED_MODEL_ID = "Abdulmoiz123/codementor-llm-merged"
