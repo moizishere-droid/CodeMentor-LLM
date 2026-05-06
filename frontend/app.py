@@ -33,13 +33,7 @@ prompt = st.text_area(
 )
 
 # Max tokens slider
-max_new_tokens = st.slider(
-    label="Max response length (tokens):",
-    min_value=64,
-    max_value=1024,
-    value=512,
-    step=64
-)
+max_new_tokens = 512
 
 # Submit button
 if st.button("Generate Response", type="primary"):
