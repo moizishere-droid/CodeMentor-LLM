@@ -1,70 +1,76 @@
 """
-Gradio Frontend for CodeMentor-LLM
-Simple chat interface for the coding assistant.
+Streamlit Frontend for CodeMentor-LLM
+Simple single-page coding assistant interface.
 """
 
-import gradio as gr
+import streamlit as st
 import requests
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-API_URL = os.getenv("API_URL", "https://Abdulmoiz123-codementor-llm-api.hf.space")
+# API URL
+API_URL = os.getenv("FRONTEND_API_URL", "http://localhost:8000")
 
-SYSTEM_PROMPT = (
-    "You are a helpful coding assistant. "
-    "Answer coding questions clearly and concisely with working code examples."
+# Page config
+st.set_page_config(
+    page_title="CodeMentor-LLM",
+    page_icon="💻",
+    layout="centered"
 )
 
+# Title
+st.title("💻 CodeMentor-LLM")
+st.markdown("A fine-tuned coding assistant powered by Llama-3.2-3B-Instruct")
+st.divider()
 
-def generate_response(prompt: str) -> str:
-    """Call FastAPI backend and return response."""
+# Input
+prompt = st.text_area(
+    label="Ask a coding question:",
+    placeholder="e.g. Write a Python function to reverse a string.",
+    height=120
+)
+
+# Max tokens slider
+max_new_tokens = 512
+
+# Submit button
+if st.button("Generate Response", type="primary"):
     if not prompt.strip():
-        return "Please enter a coding question."
+        st.warning("Please enter a coding question.")
+    else:
+        with st.spinner("Generating response..."):
+            try:
+                # Call FastAPI backend
+                response = requests.post(
+                    f"{API_URL}/generate",
+                    json={
+                        "prompt": prompt,
+                        "max_new_tokens": max_new_tokens
+                    },
+                    timeout=60
+                )
 
-    try:
-        response = requests.post(
-            f"{API_URL}/generate",
-            json={"prompt": prompt, "max_new_tokens": 512},
-            timeout=60
-        )
-        if response.status_code == 200:
-            data = response.json()
-            if data["success"]:
-                return f"{data['response']}\n\n*Latency: {data['latency_ms']:.0f}ms*"
-            else:
-                return f"Error: {data['response']}"
-        else:
-            return f"API Error: {response.status_code}"
-    except requests.exceptions.ConnectionError:
-        return "Cannot connect to API. Please try again later."
-    except requests.exceptions.Timeout:
-        return "Request timed out. Please try again."
-    except Exception as e:
-        return f"Unexpected error: {str(e)}"
+                if response.status_code == 200:
+                    data = response.json()
+                    if data["success"]:
+                        st.divider()
+                        st.markdown("### Response")
+                        st.markdown(data["response"])
+                        st.caption(f"Latency: {data['latency_ms']:.2f} ms")
+                    else:
+                        st.error(f"Error: {data['response']}")
+                else:
+                    st.error(f"API Error: {response.status_code}")
 
+            except requests.exceptions.ConnectionError:
+                st.error("Cannot connect to API. Make sure the backend is running.")
+            except requests.exceptions.Timeout:
+                st.error("Request timed out. Try a shorter prompt or reduce max tokens.")
+            except Exception as e:
+                st.error(f"Unexpected error: {str(e)}")
 
-# Gradio interface
-demo = gr.Interface(
-    fn=generate_response,
-    inputs=gr.Textbox(
-        label="Ask a coding question:",
-        placeholder="e.g. Write a Python function to reverse a string.",
-        lines=3
-    ),
-    outputs=gr.Markdown(label="Response:"),
-    title="💻 CodeMentor-LLM",
-    description="A fine-tuned coding assistant powered by Llama-3.2-3B-Instruct (SFT + DPO)",
-    examples=[
-        ["Write a Python function to reverse a string."],
-        ["What is the difference between a list and a tuple in Python?"],
-        ["Write a SQL query to find duplicate records in a table."],
-        ["Explain what a decorator is in Python with an example."],
-        ["Fix this code: myList = [1, 2, 3"],
-    ],
-    theme=gr.themes.Soft()
-)
-
-if __name__ == "__main__":
-    demo.launch()
+# Footer
+st.divider()
+st.caption("CodeMentor-LLM — Fine-tuned Llama-3.2-3B-Instruct | SFT + DPO Pipeline")

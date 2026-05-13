@@ -1,97 +1,52 @@
 """
 Model Loader for CodeMentor-LLM API
-Calls HuggingFace Inference API instead of loading model locally.
+Loads merged model once at startup and keeps it in memory.
 """
 
-import os
-import time
-import requests
-from dotenv import load_dotenv
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
-load_dotenv()
+# Global model and tokenizer
+model = None
+tokenizer = None
 
-HF_TOKEN = os.getenv("HF_TOKEN")
-MODEL_URL = "https://api-inference.huggingface.co/models/Abdulmoiz123/codementor-llm-merged"
-
-SYSTEM_PROMPT = (
-    "You are a helpful coding assistant. "
-    "Answer coding questions clearly and concisely with working code examples."
-)
+MERGED_MODEL_ID = "Abdulmoiz123/codementor-llm-merged"
 
 
 def load_model():
-    """No local model loading needed — using HF Inference API."""
-    print("Using HuggingFace Inference API for model serving")
-    print(f"Model: {MODEL_URL}")
-
-
-def generate_response(prompt: str, max_new_tokens: int = 512) -> dict:
     """
-    Generate response using HuggingFace Inference API.
-
-    Args:
-        prompt        : user coding question
-        max_new_tokens: maximum tokens to generate
-
-    Returns:
-        dict with response, latency_ms, success
+    Load merged model and tokenizer at startup.
+    Called once via FastAPI lifespan.
     """
-    if not prompt or not prompt.strip():
-        return {
-            "response": "Input cannot be empty",
-            "latency_ms": 0,
-            "success": False
-        }
+    global model, tokenizer
 
-    # Format prompt with system prompt
-    full_prompt = f"{SYSTEM_PROMPT}\n\nUser: {prompt}\n\nAssistant:"
+    print(f"Loading model from {MERGED_MODEL_ID}...")
 
-    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    payload = {
-        "inputs": full_prompt,
-        "parameters": {
-            "max_new_tokens": max_new_tokens,
-            "temperature": 0.7,
-            "top_p": 0.9,
-            "repetition_penalty": 1.3,
-            "return_full_text": False,
-        }
-    }
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_use_double_quant=True,
+    )
 
-    try:
-        start_time = time.time()
-        response = requests.post(
-            MODEL_URL,
-            headers=headers,
-            json=payload,
-            timeout=60
-        )
-        latency_ms = (time.time() - start_time) * 1000
+    tokenizer = AutoTokenizer.from_pretrained(MERGED_MODEL_ID)
+    tokenizer.pad_token = tokenizer.eos_token
 
-        if response.status_code == 200:
-            result = response.json()
-            generated_text = result[0]["generated_text"].strip()
-            return {
-                "response": generated_text,
-                "latency_ms": round(latency_ms, 2),
-                "success": True
-            }
-        else:
-            return {
-                "response": f"API Error: {response.status_code} — {response.text}",
-                "latency_ms": 0,
-                "success": False
-            }
+    model = AutoModelForCausalLM.from_pretrained(
+        MERGED_MODEL_ID,
+        quantization_config=bnb_config,
+        device_map="auto",
+        torch_dtype=torch.bfloat16,
+    )
 
-    except requests.exceptions.Timeout:
-        return {
-            "response": "Request timed out. Please try again.",
-            "latency_ms": 0,
-            "success": False
-        }
-    except Exception as e:
-        return {
-            "response": f"Error: {str(e)}",
-            "latency_ms": 0,
-            "success": False
-        }
+    print(f"Model loaded successfully — {model.get_memory_footprint() / 1024**3:.2f} GB")
+
+
+def get_model():
+    """Return loaded model."""
+    return model
+
+
+def get_tokenizer():
+    """Return loaded tokenizer."""
+    return tokenizer
