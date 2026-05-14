@@ -4,7 +4,16 @@ Converts CodeAlpaca dataset samples to Llama-3 chat template format.
 """
 
 from transformers import AutoTokenizer
-from evaluate import extract_instruction, generate_response
+from src.inference import generate_response
+
+def extract_instruction(text: str) -> str:
+    """Extract instruction from formatted text."""
+    if "<|start_header_id|>user<|end_header_id|>" in text:
+        instruction = text.split("<|start_header_id|>user<|end_header_id|>")[-1]
+        instruction = instruction.split("<|eot_id|>")[0].strip()
+        return instruction
+    return ""
+
 
 # System prompt for coding assistant
 SYSTEM_PROMPT = (
