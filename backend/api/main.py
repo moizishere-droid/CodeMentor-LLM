@@ -6,10 +6,15 @@ Entry point for the REST API.
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 from api.routes import router
 from api.database import create_tables
-from api.model_loader import load_model
+
+if os.getenv("USE_LOCAL_MODEL", "false").lower() == "true":
+    from api.model_loader_prod import load_model, generate_response
+else:
+    from api.model_loader import load_model, generate_response
 
 
 @asynccontextmanager

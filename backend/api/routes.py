@@ -8,8 +8,9 @@ from sqlalchemy.orm import Session
 
 from api.schemas import GenerateRequest, GenerateResponse, HealthResponse, LogsResponse
 from api.database import get_db, log_inference, InferenceLog
-from api.model_loader import get_model, get_tokenizer
-from src.inference import generate_response
+#from api.model_loader import get_model, get_tokenizer
+from api.model_loader import generate_response
+#from src.inference import generate_response
 
 router = APIRouter()
 
@@ -34,6 +35,7 @@ def generate(request: GenerateRequest, db: Session = Depends(get_db)):
     Returns:
         GenerateResponse with response, latency_ms, success
     """
+    '''
     # Get model and tokenizer
     model = get_model()
     tokenizer = get_tokenizer()
@@ -44,6 +46,11 @@ def generate(request: GenerateRequest, db: Session = Depends(get_db)):
         tokenizer=tokenizer,
         prompt=request.prompt,
         max_new_tokens=request.max_new_tokens,
+    )
+    '''
+    result = generate_response(
+    prompt=request.prompt,
+    max_new_tokens=request.max_new_tokens,
     )
 
     # Log to database
