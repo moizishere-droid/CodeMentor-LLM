@@ -43,7 +43,7 @@
 - python-dotenv==1.0.1
 
 ## Configuration Files
-- backend/config.yaml — all model, training, inference configs
+- backend/src/config.yaml — all model, training, inference configs
 - .env — environment variables (gitignored)
 
 ## GPU Training
@@ -51,6 +51,6 @@
 - Google Colab: T4 — used for training phases (9–16)
 
 ## Notes
-- bitsandbytes requires Linux/Colab for GPU quantization
+- bitsandbytes requires Colab for GPU quantization
 - All GPU phases will be run on Google Colab
 - Local VS Code used for data, API, frontend, testing phases
