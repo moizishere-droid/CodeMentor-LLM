@@ -32,43 +32,6 @@ Fine-tune Llama-3.2-3B-Instruct on 5,000 high-quality coding instruction-respons
 
 ---
 
-## 🏗️ Architecture
-codementor-llm/
-├── notebooks/          ← experiment notebooks (phases 3-22)
-├── backend/
-│   ├── src/            ← training + inference scripts
-│   │   ├── config.py
-│   │   ├── data_formatter.py
-│   │   ├── data_cleaner.py
-│   │   ├── train_sft.py
-│   │   ├── train_dpo.py
-│   │   ├── evaluate.py
-│   │   ├── inference.py
-│   │   ├── merge_model.py
-│   │   └── modal_app.py
-│   │   └── config.yaml
-│   ├── api/            ← FastAPI endpoints
-│   │   ├── main.py
-│   │   ├── routes.py
-│   │   ├── schemas.py
-│   │   ├── model_loader.py
-│   │   └── database.py
-│   │   └── model_loader_prod.py
-│   ├── tests/          ← pytest test files
-│   ├── requirements.txt
-│   └── Dockerfile
-├── frontend/
-│   ├── app.py          ← Streamlit UI
-│   ├── requirements.txt
-│   └── Dockerfile
-├── data/               ← datasets
-├── docs/               ← phase documentation (24 phases)
-├── docker-compose.yml
-├── .env.example
-└── README.md
-
----
-
 ## 🚀 Local Setup
 
 ### Prerequisites
