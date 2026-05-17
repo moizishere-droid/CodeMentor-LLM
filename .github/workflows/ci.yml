@@ -50,3 +50,4 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           USE_LOCAL_MODEL: "false"
           MODAL_ENDPOINT: "https://moizishere-droid--codementor-llm-generate-endpoint.modal.run"
+          PYTHONPATH: ${{ github.workspace }}/backend
