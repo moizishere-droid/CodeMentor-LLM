@@ -11,6 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.data_formatter import format_preference_pair, SYSTEM_PROMPT
 
 
+# Tests for format_preference_pair function in data_formatter.py
 def test_format_preference_pair_basic():
     """Test basic preference pair formatting."""
     result = format_preference_pair(
@@ -23,6 +24,7 @@ def test_format_preference_pair_basic():
     assert result["rejected"] == "Here is a long verbose answer..."
 
 
+# Test edge cases for format_preference_pair function in data_formatter.py 
 def test_format_preference_pair_keys():
     """Test preference pair has correct keys."""
     result = format_preference_pair(
