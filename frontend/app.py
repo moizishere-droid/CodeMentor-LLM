@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_URL = os.getenv("API_URL", "http://localhost:8000")
+API_URL = os.getenv("API_URL", "https://Abdulmoiz123-codementor-llm-api.hf.space")
 
 # Page config
 st.set_page_config(
