@@ -1,4 +1,4 @@
-## Model Deployment
+## Phase 19 — Model Deployment
 
 After fine-tuning the LLM using SFT and DPO, the next step was deploying the model so users could interact with it through an API.
 
