@@ -2,6 +2,13 @@
 Modal deployment for CodeMentor-LLM
 Serves fine-tuned Llama-3.2-3B-Instruct on serverless GPU.
 """
+
+'''
+I used Modal to deploy my fine-tuned LLM on a cloud GPU as a scalable API service. 
+Modal simplified infrastructure management, GPU allocation, and deployment, while 
+4-bit quantization reduced memory usage and improved inference efficiency.
+'''
+
 import modal
 
 # Define Modal app
