@@ -22,9 +22,8 @@ jobs:
       - name: Install ruff
         run: pip install ruff
 
-      - name: Run ruff lint
-        run: ruff check backend/src backend/api --ignore E501 F401 F541
-
+      - name: Run ruff lint 
+        run: ruff check backend/src backend/api --ignore E501,F401,F541
   test:
     runs-on: ubuntu-latest
     needs: lint
