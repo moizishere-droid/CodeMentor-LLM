@@ -48,3 +48,11 @@ That is all DPO does — shift probabilities toward better responses.
 # Where SFT and DPO Adapter place ?
 
 Both SFT and DPO adapters follow same config — both placed on q_proj, k_proj, v_proj, o_proj only.
+
+# Why Modal for model deployment?
+
+modal is a serverless AI cloud platform used to deploy and run ML/LLM models without manually managing infrastructure.
+
+Used for LLM inference
+
+Modal is a cloud platform that makes deploying and scaling AI/LLM models easy without manually managing GPU servers or infrastructure.

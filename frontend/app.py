@@ -1,6 +1,6 @@
 """
 Streamlit Frontend for CodeMentor-LLM
-Simple single-page coding assistant interface.
+Simple single page coding assistant interface.
 """
 
 import streamlit as st
@@ -10,8 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# API URL
-API_URL = os.getenv("FRONTEND_API_URL", "http://localhost:8000")
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 # Page config
 st.set_page_config(
@@ -22,7 +21,7 @@ st.set_page_config(
 
 # Title
 st.title("💻 CodeMentor-LLM")
-st.markdown("A fine-tuned coding assistant powered by Llama-3.2-3B-Instruct")
+st.markdown("A fine-tuned coding assistant powered by Llama-3.2-3B-Instruct (SFT + DPO)")
 st.divider()
 
 # Input
@@ -32,9 +31,6 @@ prompt = st.text_area(
     height=120
 )
 
-# Max tokens slider
-max_new_tokens = 512
-
 # Submit button
 if st.button("Generate Response", type="primary"):
     if not prompt.strip():
@@ -42,14 +38,13 @@ if st.button("Generate Response", type="primary"):
     else:
         with st.spinner("Generating response..."):
             try:
-                # Call FastAPI backend
                 response = requests.post(
                     f"{API_URL}/generate",
                     json={
                         "prompt": prompt,
-                        "max_new_tokens": max_new_tokens
+                        "max_new_tokens": 512
                     },
-                    timeout=60
+                    timeout=120
                 )
 
                 if response.status_code == 200:
@@ -67,7 +62,7 @@ if st.button("Generate Response", type="primary"):
             except requests.exceptions.ConnectionError:
                 st.error("Cannot connect to API. Make sure the backend is running.")
             except requests.exceptions.Timeout:
-                st.error("Request timed out. Try a shorter prompt or reduce max tokens.")
+                st.error("Request timed out. Please try again.")
             except Exception as e:
                 st.error(f"Unexpected error: {str(e)}")
 

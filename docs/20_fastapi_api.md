@@ -6,11 +6,11 @@ with SQLite logging for every request.
 
 ## API Structure
 backend/api/
-├── main.py         ← FastAPI app + lifespan
-├── routes.py       ← API endpoints
 ├── schemas.py      ← Pydantic request/response models
-├── model_loader.py ← loads model once at startup
 └── database.py     ← SQLite logging
+├── model_loader.py ← loads model once at startup or use deploy model API
+├── routes.py       ← API endpoints
+├── main.py         ← FastAPI app + lifespan
 
 ## Endpoints
 | Method | Endpoint   | Description                    |

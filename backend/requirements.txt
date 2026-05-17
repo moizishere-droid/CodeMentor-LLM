@@ -22,6 +22,7 @@ fastapi
 uvicorn
 pydantic
 sqlalchemy
+modal
 
 # Utilities
 python-dotenv

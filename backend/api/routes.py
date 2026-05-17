@@ -2,17 +2,24 @@
 API Routes for CodeMentor-LLM
 Defines all API endpoints.
 """
+"""
+It is the bridge between:
+1) Frontend / user request
+2) Your AI model
+3) Your database
+"""
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from api.schemas import GenerateRequest, GenerateResponse, HealthResponse, LogsResponse
 from api.database import get_db, log_inference, InferenceLog
-#from api.model_loader import get_model, get_tokenizer
 from api.model_loader import generate_response
-#from src.inference import generate_response
 
-router = APIRouter()
+#from api.model_loader_prod import get_model, get_tokenizer --> for production, we load the model at startup and keep it in memory, so we don't need to get it for each request. Instead, we will directly call the generate_response function which uses the loaded model.
+#from src.inference import generate_response --> for production, we will directly call the generate_response function from model_loader_prod which uses the loaded model, so we don't need to import it here. Instead, we will import it in main.py based on the environment variable.
+
+router = APIRouter() # Create a router for API endpoints, allows us to organize routes and include them in the main app.
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -35,6 +42,9 @@ def generate(request: GenerateRequest, db: Session = Depends(get_db)):
     Returns:
         GenerateResponse with response, latency_ms, success
     """
+ 
+    # enable this for production when we load the model at startup and keep it in memory, so we don't need to get it for each request.
+    # Instead, we will directly call the generate_response function which uses the loaded model.
     '''
     # Get model and tokenizer
     model = get_model()
@@ -48,6 +58,7 @@ def generate(request: GenerateRequest, db: Session = Depends(get_db)):
         max_new_tokens=request.max_new_tokens,
     )
     '''
+    
     result = generate_response(
     prompt=request.prompt,
     max_new_tokens=request.max_new_tokens,
@@ -70,11 +81,11 @@ def generate(request: GenerateRequest, db: Session = Depends(get_db)):
 
 
 @router.get("/logs", response_model=LogsResponse)
-def get_logs(limit: int = 10, db: Session = Depends(get_db)):
+def get_logs(limit: int = 5, db: Session = Depends(get_db)):
     """
     Retrieve recent inference logs.
     Args:
-        limit: number of logs to retrieve (default 10)
+        limit: number of logs to retrieve (default 5)
         db   : database session
     Returns:
         LogsResponse with list of logs and total count

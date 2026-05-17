@@ -17,6 +17,8 @@ else:
     from api.model_loader import load_model, generate_response
 
 
+# FastAPI lifespan context manager to handle startup and shutdown events for the application. 
+# This is where we can initialize resources like the model and database connections. 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -33,7 +35,7 @@ async def lifespan(app: FastAPI):
     print("Shutting down CodeMentor-LLM API...")
 
 
-# Create FastAPI app
+# Create FastAPI app 
 app = FastAPI(
     title="CodeMentor-LLM API",
     description="REST API for CodeMentor-LLM — a fine-tuned coding assistant",

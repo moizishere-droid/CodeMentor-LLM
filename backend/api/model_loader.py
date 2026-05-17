@@ -1,6 +1,7 @@
 """
 Model Loader for CodeMentor-LLM API
-Uses HuggingFace Inference Router for model serving.
+Calls Modal serverless GPU endpoint serving
+the fine-tuned Llama-3.2-3B-Instruct merged model.
 """
 
 import os
@@ -10,25 +11,31 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-HF_TOKEN = os.getenv("HF_TOKEN")
-API_URL = "https://router.huggingface.co/v1/chat/completions"
-MODEL = "meta-llama/Llama-3.1-8B-Instruct:cerebras"
+MODAL_ENDPOINT = os.getenv(
+    "MODAL_ENDPOINT",
+    "https://moizishere-droid--codementor-llm-generate-endpoint.modal.run"
+)
 
 SYSTEM_PROMPT = (
     "You are a helpful coding assistant. "
     "Answer coding questions clearly and concisely with working code examples."
 )
 
-
 def load_model():
-    """No local model loading — using HF Inference Router."""
-    print("Using HuggingFace Inference Router for model serving")
-    print(f"Model: {MODEL}")
+    """No local model loading — using Modal serverless GPU."""
+    print("Using Modal serverless GPU endpoint")
+    print(f"Endpoint: {MODAL_ENDPOINT}")
 
 
 def generate_response(prompt: str, max_new_tokens: int = 512) -> dict:
-    """Generate response using HuggingFace Inference Router."""
-
+    """
+    Generate response using Modal serverless GPU endpoint.
+    Args:
+        prompt        : user coding question
+        max_new_tokens: maximum tokens to generate
+    Returns:
+        dict with response, latency_ms, success
+    """
     if not prompt or not prompt.strip():
         return {
             "response": "Input cannot be empty",
@@ -36,43 +43,30 @@ def generate_response(prompt: str, max_new_tokens: int = 512) -> dict:
             "success": False
         }
 
-    headers = {
-        "Authorization": f"Bearer {HF_TOKEN}",
-        "Content-Type": "application/json"
-    }
-
     payload = {
-        "model": MODEL,
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt}
-        ],
-        "max_tokens": max_new_tokens,
-        "temperature": 0.7,
-        "top_p": 0.9,
+        "prompt": prompt,
+        "max_new_tokens": max_new_tokens
     }
 
     try:
         start_time = time.time()
         response = requests.post(
-            API_URL,
-            headers=headers,
+            MODAL_ENDPOINT,
             json=payload,
-            timeout=60
+            timeout=120
         )
         latency_ms = (time.time() - start_time) * 1000
 
         if response.status_code == 200:
             result = response.json()
-            generated_text = result["choices"][0]["message"]["content"].strip()
             return {
-                "response": generated_text,
+                "response": result["response"],
                 "latency_ms": round(latency_ms, 2),
-                "success": True
+                "success": result["success"]
             }
         else:
             return {
-                "response": f"API Error: {response.status_code} — {response.text}",
+                "response": f"API Error: {response.status_code}",
                 "latency_ms": 0,
                 "success": False
             }
