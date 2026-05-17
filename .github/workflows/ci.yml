@@ -45,7 +45,7 @@ jobs:
       - name: Run tests
         run: |
           cd backend
-          pytest tests/test_api.py -v
+          pytest tests/ -v
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           USE_LOCAL_MODEL: "false"
