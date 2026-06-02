@@ -43,6 +43,7 @@ SYSTEM_PROMPT = (
     gpu="A10G",
     timeout=120,
     secrets=[modal.Secret.from_name("huggingface-secret")],
+    min_containers=1
 )
 class CodeMentorModel:
 
@@ -124,11 +125,11 @@ class CodeMentorModel:
             }
 
 
+model = CodeMentorModel()
 @app.function(image=image)
 @modal.fastapi_endpoint(method="POST")
 def generate_endpoint(item: dict) -> dict:
-    """Web endpoint for generating responses."""
-    model = CodeMentorModel()
-    prompt = item.get("prompt", "")
-    max_new_tokens = item.get("max_new_tokens", 512)
-    return model.generate.remote(prompt, max_new_tokens)
+    return model.generate.remote(
+        item.get("prompt", ""),
+        item.get("max_new_tokens", 512)
+    )
