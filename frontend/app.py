@@ -7,6 +7,7 @@ import streamlit as st
 import requests
 import os
 from dotenv import load_dotenv
+import time
 
 load_dotenv()
 
@@ -24,6 +25,20 @@ st.title("💻 CodeMentor-LLM")
 st.markdown("A fine-tuned coding assistant powered by Llama-3.2-3B-Instruct (SFT + DPO)")
 st.divider()
 
+def wake_up_api():
+    """Ping API health endpoint to wake it up if sleeping."""
+    try:
+        with st.spinner("Connecting to API — please wait..."):
+            for _ in range(3):
+                response = requests.get(f"{API_URL}/health", timeout=60)
+                if response.status_code == 200:
+                    time.sleep(2)
+                    return True
+                time.sleep(10)
+        return False
+    except Exception:
+        return False
+
 # Input
 prompt = st.text_area(
     label="Ask a coding question:",
@@ -36,6 +51,7 @@ if st.button("Generate Response", type="primary"):
     if not prompt.strip():
         st.warning("Please enter a coding question.")
     else:
+        wake_up_api()
         with st.spinner("Generating response..."):
             try:
                 response = requests.post(
