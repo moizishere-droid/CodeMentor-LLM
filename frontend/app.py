@@ -26,19 +26,29 @@ st.markdown("A fine-tuned coding assistant powered by Llama-3.2-3B-Instruct (SFT
 st.divider()
 
 def wake_up_api():
-    """Ping API health endpoint to wake it up if sleeping."""
+    """Wake up Modal API based on real cold start timing (~60s)."""
     try:
-        with st.spinner("Connecting to API — please wait..."):
-            for _ in range(3):
-                response = requests.get(f"{API_URL}/health", timeout=60)
-                if response.status_code == 200:
-                    time.sleep(2)
-                    return True
-                time.sleep(10)
+        with st.spinner("Warming up model (this may take ~1 minute for the first start)..."):
+            # total warmup window ~90 seconds
+            for i in range(12):
+                try:
+                    response = requests.get(
+                        f"{API_URL}/health",
+                        timeout=30
+                    )
+                    if response.status_code == 200:
+                        # extra buffer to ensure model is fully ready
+                        time.sleep(3)
+                        return True
+                except:
+                    pass
+                # progressive wait (important for cold starts)
+                wait_time = 5 if i < 6 else 8
+                time.sleep(wait_time)
         return False
     except Exception:
         return False
-
+    
 # Input
 prompt = st.text_area(
     label="Ask a coding question:",
