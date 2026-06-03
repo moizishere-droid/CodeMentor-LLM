@@ -43,7 +43,6 @@ SYSTEM_PROMPT = (
     gpu="A10G",
     timeout=120,
     secrets=[modal.Secret.from_name("huggingface-secret")],
-    min_containers=1
 )
 class CodeMentorModel:
 
