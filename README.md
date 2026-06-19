@@ -10,9 +10,7 @@ A production-grade coding assistant built by fine-tuning **Llama-3.2-3B-Instruct
 
 | Component | URL |
 |---|---|
-| 🖥️ Frontend | [https://abdulmoiz123-codementor-llm-app.hf.space](https://abdulmoiz123-codementor-llm-app.hf.space) |
-| ⚡ Backend API | [https://abdulmoiz123-codementor-llm-api.hf.space](https://abdulmoiz123-codementor-llm-api.hf.space) |
-| 📖 API Docs | [https://abdulmoiz123-codementor-llm-api.hf.space/docs](https://abdulmoiz123-codementor-llm-api.hf.space/docs) |
+| 🖥️ App (Frontend + API) | [https://abdulmoiz123-codementor-llm-combined.hf.space](https://abdulmoiz123-codementor-llm-combined.hf.space) |
 | 🤗 Model | [Abdulmoiz123/codementor-llm-merged](https://huggingface.co/Abdulmoiz123/codementor-llm-merged) |
 
 ---
