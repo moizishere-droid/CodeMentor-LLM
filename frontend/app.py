@@ -6,12 +6,13 @@ Simple single page coding assistant interface.
 import streamlit as st
 import requests
 import os
-from dotenv import load_dotenv
 import time
+import pandas as pd
+from dotenv import load_dotenv
 
 load_dotenv()
 
-API_URL = os.getenv("API_URL", "https://Abdulmoiz123-codementor-llm-api.hf.space")
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 # Page config
 st.set_page_config(
@@ -25,11 +26,11 @@ st.title("💻 CodeMentor-LLM")
 st.markdown("A fine-tuned coding assistant powered by Llama-3.2-3B-Instruct (SFT + DPO)")
 st.divider()
 
+
 def wake_up_api():
     """Wake up Modal API based on real cold start timing (~60s)."""
     try:
         with st.spinner("Warming up model (this may take ~1 minute for the first start)..."):
-            # total warmup window ~90 seconds
             for i in range(12):
                 try:
                     response = requests.get(
@@ -37,18 +38,17 @@ def wake_up_api():
                         timeout=30
                     )
                     if response.status_code == 200:
-                        # extra buffer to ensure model is fully ready
                         time.sleep(3)
                         return True
                 except:
                     pass
-                # progressive wait (important for cold starts)
                 wait_time = 5 if i < 6 else 8
                 time.sleep(wait_time)
         return False
     except Exception:
         return False
-    
+
+
 # Input
 prompt = st.text_area(
     label="Ask a coding question:",
@@ -95,3 +95,19 @@ if st.button("Generate Response", type="primary"):
 # Footer
 st.divider()
 st.caption("CodeMentor-LLM — Fine-tuned Llama-3.2-3B-Instruct | SFT + DPO Pipeline")
+
+# Admin logs
+if st.checkbox("Show inference logs (admin)"):
+    try:
+        r = requests.get(f"{API_URL}/logs?limit=50", timeout=30)
+        if r.status_code == 200:
+            data = r.json()
+            st.markdown(f"**Total logs: {data['total']}**")
+            if data["logs"]:
+                df = pd.DataFrame(data["logs"])
+                df = df[["id", "prompt", "response", "latency_ms", "timestamp", "success"]]
+                st.dataframe(df)
+            else:
+                st.info("No logs yet.")
+    except Exception as e:
+        st.error(f"Could not fetch logs: {e}")
