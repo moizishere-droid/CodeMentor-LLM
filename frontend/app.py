@@ -6,7 +6,6 @@ Simple single page coding assistant interface.
 import streamlit as st
 import requests
 import os
-import time
 import json
 import pandas as pd
 from dotenv import load_dotenv
@@ -65,10 +64,7 @@ if st.button("Generate Response", type="primary"):
         try:
             st.divider()
             st.markdown("### Response")
-            started_at = time.perf_counter()
             st.write_stream(stream_response())
-            elapsed = time.perf_counter() - started_at
-            st.caption(f"Completed in {elapsed:.2f} seconds")
         except requests.exceptions.ConnectionError:
             st.error("Cannot connect to API. Make sure the backend is running.")
         except requests.exceptions.Timeout:
