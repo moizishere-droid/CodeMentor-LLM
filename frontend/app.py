@@ -7,6 +7,7 @@ import streamlit as st
 import requests
 import os
 import time
+import json
 import pandas as pd
 from dotenv import load_dotenv
 
@@ -27,28 +28,6 @@ st.markdown("A fine-tuned coding assistant powered by Llama-3.2-3B-Instruct (SFT
 st.divider()
 
 
-def wake_up_api():
-    """Wake up Modal API based on real cold start timing (~60s)."""
-    try:
-        with st.spinner("Warming up model (this may take ~1 minute for the first start)..."):
-            for i in range(12):
-                try:
-                    response = requests.get(
-                        f"{API_URL}/health",
-                        timeout=30
-                    )
-                    if response.status_code == 200:
-                        time.sleep(3)
-                        return True
-                except:
-                    pass
-                wait_time = 5 if i < 6 else 8
-                time.sleep(wait_time)
-        return False
-    except Exception:
-        return False
-
-
 # Input
 prompt = st.text_area(
     label="Ask a coding question:",
@@ -61,36 +40,41 @@ if st.button("Generate Response", type="primary"):
     if not prompt.strip():
         st.warning("Please enter a coding question.")
     else:
-        wake_up_api()
-        with st.spinner("Generating response..."):
-            try:
-                response = requests.post(
-                    f"{API_URL}/generate",
-                    json={
-                        "prompt": prompt,
-                        "max_new_tokens": 512
-                    },
-                    timeout=120
-                )
+        def stream_response():
+            with requests.post(
+                f"{API_URL}/generate/stream",
+                json={"prompt": prompt, "max_new_tokens": 512},
+                stream=True,
+                timeout=(30, 180),
+            ) as response:
+                response.raise_for_status()
+                for line in response.iter_lines(chunk_size=1, decode_unicode=True):
+                    if not line or not line.startswith("data:"):
+                        continue
 
-                if response.status_code == 200:
-                    data = response.json()
-                    if data["success"]:
-                        st.divider()
-                        st.markdown("### Response")
-                        st.markdown(data["response"])
-                        st.caption(f"Latency: {data['latency_ms']:.2f} ms")
-                    else:
-                        st.error(f"Error: {data['response']}")
-                else:
-                    st.error(f"API Error: {response.status_code}")
+                    data = line[5:].strip()
+                    if data == "[DONE]":
+                        return
 
-            except requests.exceptions.ConnectionError:
-                st.error("Cannot connect to API. Make sure the backend is running.")
-            except requests.exceptions.Timeout:
-                st.error("Request timed out. Please try again.")
-            except Exception as e:
-                st.error(f"Unexpected error: {str(e)}")
+                    event = json.loads(data)
+                    if "error" in event:
+                        raise RuntimeError(event["error"])
+                    if "token" in event:
+                        yield event["token"]
+
+        try:
+            st.divider()
+            st.markdown("### Response")
+            started_at = time.perf_counter()
+            st.write_stream(stream_response())
+            elapsed = time.perf_counter() - started_at
+            st.caption(f"Completed in {elapsed:.2f} seconds")
+        except requests.exceptions.ConnectionError:
+            st.error("Cannot connect to API. Make sure the backend is running.")
+        except requests.exceptions.Timeout:
+            st.error("Request timed out. Please try again.")
+        except Exception as e:
+            st.error(f"Unexpected error: {str(e)}")
 
 # Footer
 st.divider()

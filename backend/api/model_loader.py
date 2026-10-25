@@ -6,6 +6,7 @@ the fine-tuned Llama-3.2-3B-Instruct merged model.
 
 import os
 import time
+import json
 import requests
 from dotenv import load_dotenv
 
@@ -83,3 +84,35 @@ def generate_response(prompt: str, max_new_tokens: int = 512) -> dict:
             "latency_ms": 0,
             "success": False
         }
+
+
+def stream_generate_response(prompt: str, max_new_tokens: int = 512):
+    """Yield text chunks streamed from the Modal inference endpoint."""
+    response = requests.post(
+        MODAL_ENDPOINT,
+        json={
+            "prompt": prompt,
+            "max_new_tokens": max_new_tokens,
+            "stream": True,
+        },
+        stream=True,
+        timeout=(30, 180),
+    )
+    response.raise_for_status()
+
+    try:
+        for line in response.iter_lines(chunk_size=1, decode_unicode=True):
+            if not line or not line.startswith("data:"):
+                continue
+
+            data = line[5:].strip()
+            if data == "[DONE]":
+                break
+
+            event = json.loads(data)
+            if "error" in event:
+                raise RuntimeError(event["error"])
+            if "token" in event:
+                yield event["token"]
+    finally:
+        response.close()

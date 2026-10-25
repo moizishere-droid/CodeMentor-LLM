@@ -57,7 +57,6 @@ class CodeMentorModel:
                 bnb_4bit_compute_dtype=torch.bfloat16,
                 bnb_4bit_use_double_quant=True,
             )
-
             self.tokenizer = AutoTokenizer.from_pretrained(MERGED_MODEL_ID)
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
@@ -67,6 +66,7 @@ class CodeMentorModel:
                 device_map="auto",
                 torch_dtype=torch.bfloat16,
             )
+            self.model.eval()
 
             print("Model loaded successfully")
         except Exception:
@@ -75,7 +75,7 @@ class CodeMentorModel:
             raise
 
     @modal.method()
-    def generate(self, prompt: str, max_new_tokens: int = 256) -> dict:
+    def generate(self, prompt: str, max_new_tokens: int = 512) -> dict:
         """Generate a response for a coding prompt."""
         import time
         import torch
@@ -101,11 +101,12 @@ class CodeMentorModel:
 
             start_time = time.time()
 
-            with torch.no_grad():
+            with torch.inference_mode():
                 outputs = self.model.generate(
                     inputs,
                     max_new_tokens=max_new_tokens,
                     do_sample=False,
+                    use_cache=True,
                     pad_token_id=self.tokenizer.eos_token_id,
                 )
 
@@ -131,6 +132,56 @@ class CodeMentorModel:
                 "success": False,
             }
 
+    @modal.method()
+    def generate_stream(self, prompt: str, max_new_tokens: int = 512):
+        """Yield generated text as it becomes available."""
+        import threading
+        import torch
+        from transformers import TextIteratorStreamer
+
+        if not prompt or not prompt.strip():
+            raise ValueError("Input cannot be empty")
+
+        messages = [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": prompt},
+        ]
+        inputs = self.tokenizer.apply_chat_template(
+            messages,
+            return_tensors="pt",
+            add_generation_prompt=True,
+        ).to("cuda")
+        streamer = TextIteratorStreamer(
+            self.tokenizer,
+            skip_prompt=True,
+            skip_special_tokens=True,
+        )
+        errors = []
+
+        def run_generation():
+            try:
+                with torch.inference_mode():
+                    self.model.generate(
+                        inputs,
+                        streamer=streamer,
+                        max_new_tokens=max_new_tokens,
+                        do_sample=False,
+                        use_cache=True,
+                        pad_token_id=self.tokenizer.eos_token_id,
+                    )
+            except Exception as exc:
+                errors.append(exc)
+                streamer.end()
+
+        worker = threading.Thread(target=run_generation, daemon=True)
+        worker.start()
+        for text_chunk in streamer:
+            if text_chunk:
+                yield text_chunk
+        worker.join()
+        if errors:
+            raise errors[0]
+
 
 model = CodeMentorModel()
 
@@ -138,7 +189,35 @@ model = CodeMentorModel()
 @app.function(image=image)
 @modal.fastapi_endpoint(method="POST")
 def generate_endpoint(item: dict) -> dict:
+    # Allow the frontend's 512-token request so longer answers are not cut off at 256.
+    try:
+        requested_tokens = int(item.get("max_new_tokens", 512))
+    except (TypeError, ValueError):
+        requested_tokens = 512
+
+    max_new_tokens = max(1, min(requested_tokens, 512))
+
+    if item.get("stream"):
+        import json
+        from fastapi.responses import StreamingResponse
+
+        def event_stream():
+            try:
+                for text_chunk in model.generate_stream.remote_gen(
+                    item.get("prompt", ""), max_new_tokens
+                ):
+                    yield f"data: {json.dumps({'token': text_chunk})}\n\n"
+            except Exception as exc:
+                yield f"data: {json.dumps({'error': str(exc)})}\n\n"
+            yield "data: [DONE]\n\n"
+
+        return StreamingResponse(
+            event_stream(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
+
     return model.generate.remote(
         item.get("prompt", ""),
-        item.get("max_new_tokens", 256),
+        max_new_tokens,
     )
