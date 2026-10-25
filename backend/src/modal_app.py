@@ -3,12 +3,6 @@ Modal deployment for CodeMentor-LLM
 Serves fine-tuned Llama-3.2-3B-Instruct on serverless GPU.
 """
 
-'''
-I used Modal to deploy my fine-tuned LLM on a cloud GPU as a scalable API service. 
-Modal simplified infrastructure management, GPU allocation, and deployment, while 
-4-bit quantization reduced memory usage and improved inference efficiency.
-'''
-
 import modal
 
 # Define Modal app
@@ -20,7 +14,6 @@ image = (
     .pip_install(
         "transformers==4.49.0",
         "peft==0.14.0",
-        "bitsandbytes==0.45.3",
         "accelerate==1.5.1",
         "torch==2.6.0",
         "huggingface-hub",
@@ -50,30 +43,23 @@ class CodeMentorModel:
     def load_model(self):
         """Load model once when container starts."""
         import torch
-        from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+        from transformers import AutoModelForCausalLM, AutoTokenizer
 
         print(f"Loading model {MERGED_MODEL_ID}...")
-
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.bfloat16,
-            bnb_4bit_use_double_quant=True,
-        )
 
         self.tokenizer = AutoTokenizer.from_pretrained(MERGED_MODEL_ID)
         self.tokenizer.pad_token = self.tokenizer.eos_token
 
+        # bfloat16 directly — no quantization, faster inference on A10G
         self.model = AutoModelForCausalLM.from_pretrained(
             MERGED_MODEL_ID,
-            quantization_config=bnb_config,
             device_map="auto",
             torch_dtype=torch.bfloat16,
         )
         print("Model loaded successfully")
 
     @modal.method()
-    def generate(self, prompt: str, max_new_tokens: int = 512) -> dict:
+    def generate(self, prompt: str, max_new_tokens: int = 256) -> dict:
         """Generate response for a coding prompt."""
         import torch
         import time
@@ -97,11 +83,8 @@ class CodeMentorModel:
                 outputs = self.model.generate(
                     inputs,
                     max_new_tokens=max_new_tokens,
-                    temperature=0.7,
-                    top_p=0.9,
-                    do_sample=True,
+                    do_sample=False,  # greedy decoding — faster
                     pad_token_id=self.tokenizer.eos_token_id,
-                    repetition_penalty=1.3,
                 )
             latency_ms = (time.time() - start_time) * 1000
 
@@ -125,10 +108,11 @@ class CodeMentorModel:
 
 
 model = CodeMentorModel()
+
 @app.function(image=image)
 @modal.fastapi_endpoint(method="POST")
 def generate_endpoint(item: dict) -> dict:
     return model.generate.remote(
         item.get("prompt", ""),
-        item.get("max_new_tokens", 512)
+        item.get("max_new_tokens", 256)
     )
