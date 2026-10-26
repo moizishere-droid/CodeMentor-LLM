@@ -33,6 +33,10 @@ button:focus-visible { outline: 2px solid var(--cm-accent); outline-offset: 3px;
   let appearance = 'light';
   let revision = 0;
   let pendingRevision = 0;
+  let inFlight = null;
+  let confirmed = {page, appearance};
+  let sendTimer;
+  let queuedChange = false;
   const send = (type, payload = {}) => window.parent.postMessage({isStreamlitMessage: true, type, ...payload}, '*');
   const render = () => {
     document.documentElement.style.colorScheme = appearance;
@@ -57,8 +61,20 @@ button:focus-visible { outline: 2px solid var(--cm-accent); outline-offset: 3px;
     return true;
   };
   const emit = () => {
+    if (inFlight) return;
+    if (page === confirmed.page && appearance === confirmed.appearance) {
+      queuedChange = false;
+      return;
+    }
+    queuedChange = false;
     pendingRevision = ++revision;
-    send('streamlit:setComponentValue', {value: {page, appearance, revision}});
+    inFlight = {page, appearance, revision};
+    send('streamlit:setComponentValue', {value: inFlight});
+  };
+  const queueChange = () => {
+    queuedChange = true;
+    clearTimeout(sendTimer);
+    sendTimer = setTimeout(emit, 80);
   };
   window.addEventListener('message', event => {
     if (event.source !== window.parent || event.data?.type !== 'streamlit:render') return;
@@ -66,20 +82,32 @@ button:focus-visible { outline: 2px solid var(--cm-accent); outline-offset: 3px;
     revision = Math.max(revision, acknowledged);
     // An older rerun can arrive while a new selection is being acknowledged.
     if (acknowledged < pendingRevision) return;
+    const hasQueuedChange = queuedChange || (inFlight && (page !== inFlight.page || appearance !== inFlight.appearance));
+    confirmed = {page: event.data.args.page, appearance: event.data.args.appearance};
+    inFlight = null;
     pendingRevision = 0;
     document.documentElement.dataset.revision = String(acknowledged);
-    page = event.data.args.page;
-    appearance = event.data.args.appearance;
+    if (!hasQueuedChange) {
+      page = confirmed.page;
+      appearance = confirmed.appearance;
+    }
     applyAppearance();
     render();
     send('streamlit:setFrameHeight', {height: 108});
+    if (hasQueuedChange) queueChange();
   });
-  document.getElementById('workspace').onclick = () => { page = 'workspace'; render(); emit(); };
-  document.getElementById('logs').onclick = () => { page = 'logs'; render(); emit(); };
+  document.getElementById('workspace').onclick = () => {
+    if (page === 'workspace') return;
+    page = 'workspace'; render(); queueChange();
+  };
+  document.getElementById('logs').onclick = () => {
+    if (page === 'logs') return;
+    page = 'logs'; render(); queueChange();
+  };
   document.getElementById('appearance').onclick = () => {
     appearance = appearance === 'dark' ? 'light' : 'dark';
     applyAppearance();
-    emit();
+    queueChange();
   };
   send('streamlit:componentReady', {apiVersion: 1});
   send('streamlit:setFrameHeight', {height: 108});
