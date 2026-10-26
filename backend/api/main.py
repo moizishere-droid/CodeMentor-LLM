@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from api.routes import router
+from api.auth import router as auth_router
 from api.database import create_tables
 
 if os.getenv("USE_LOCAL_MODEL", "false").lower() == "true":
@@ -54,6 +55,7 @@ app.add_middleware(
 
 # Include router
 app.include_router(router)
+app.include_router(auth_router)
 
 
 if __name__ == "__main__":

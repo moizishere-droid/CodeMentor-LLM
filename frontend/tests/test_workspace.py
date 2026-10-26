@@ -13,7 +13,10 @@ sys.path.insert(0, str(FRONTEND))
 
 
 def workspace() -> AppTest:
-    return AppTest.from_file(str(FRONTEND / "app.py")).run()
+    app = AppTest.from_file(str(FRONTEND / "app.py"))
+    app.session_state["auth_token"] = "test-session"
+    app.session_state["username"] = "test-user"
+    return app.run()
 
 
 def submit(app: AppTest, prompt: str) -> AppTest:

@@ -10,30 +10,31 @@ ASSETS = Path(__file__).parent
 _header = components.declare_component("codementor_header", path=str(ASSETS))
 
 
-def render_shell() -> str:
+def render_shell(*, show_navigation: bool = True) -> str:
     """Render navigation and apply the selected appearance."""
     st.session_state.setdefault("page", "workspace")
     st.session_state.setdefault("appearance", "light")
-    if "prompt" in st.session_state:
-        st.session_state.draft = st.session_state.prompt
-    # Widget state is available before rendering. Consume it first so the header
-    # and page can finish in one run, rather than interrupting their own render.
-    event = st.session_state.get("main_navigation")
-    if isinstance(event, dict) and event != st.session_state.get("last_header_event"):
-        st.session_state.last_header_event = event
-        if event.get("page") in ("workspace", "logs"):
-            if event["page"] == "logs" and st.session_state.page != "logs":
-                st.session_state.pop("request_log_data", None)
-            st.session_state.page = event["page"]
-        if event.get("appearance") in ("light", "dark"):
-            st.session_state.appearance = event["appearance"]
-    _header(
-        page=st.session_state.page,
-        appearance=st.session_state.appearance,
-        ack_revision=st.session_state.get("last_header_event", {}).get("revision", 0),
-        key="main_navigation",
-        default=None,
-    )
+    if show_navigation:
+        if "prompt" in st.session_state:
+            st.session_state.draft = st.session_state.prompt
+        # Widget state is available before rendering. Consume it first so the header
+        # and page can finish in one run, rather than interrupting their own render.
+        event = st.session_state.get("main_navigation")
+        if isinstance(event, dict) and event != st.session_state.get("last_header_event"):
+            st.session_state.last_header_event = event
+            if event.get("page") in ("workspace", "logs", "logout"):
+                if event["page"] == "logs" and st.session_state.page != "logs":
+                    st.session_state.pop("request_log_data", None)
+                st.session_state.page = event["page"]
+            if event.get("appearance") in ("light", "dark"):
+                st.session_state.appearance = event["appearance"]
+        _header(
+            page=st.session_state.page,
+            appearance=st.session_state.appearance,
+            ack_revision=st.session_state.get("last_header_event", {}).get("revision", 0),
+            key="main_navigation",
+            default=None,
+        )
 
     tokens = (ASSETS / "tokens.css").read_text(encoding="utf-8")
     styles = (ASSETS / "app.css").read_text(encoding="utf-8")

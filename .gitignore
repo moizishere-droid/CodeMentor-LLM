@@ -36,3 +36,7 @@ logs/
 # W&B
 wandb/
 '''
+
+# Private account/history databases
+*.db
+*.db-*

@@ -3,13 +3,17 @@ Database configuration for CodeMentor-LLM API
 SQLite database for logging inference requests.
 """
 
-from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, DateTime
+import os
+from pathlib import Path
+from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, DateTime, inspect, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 
 # Database URL
-SQLALCHEMY_DATABASE_URL = "sqlite:///./codementor.db" # Local file will be make no server needed, just a file in the project directory
+DB_PATH = Path(os.getenv("DATABASE_PATH", str(Path(__file__).resolve().parents[1] / "codementor.db")))
+DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_PATH.as_posix()}" # Local file will be make no server needed, just a file in the project directory
 
 # Create engine
 engine = create_engine(
@@ -30,6 +34,7 @@ class InferenceLog(Base):
     __tablename__ = "inference_logs"
 
     id         = Column(Integer, primary_key=True, index=True)
+    user_id    = Column(Integer, index=True, nullable=True)
     prompt     = Column(String, nullable=False)
     response   = Column(String, nullable=False)
     latency_ms = Column(Float, nullable=False)
@@ -37,10 +42,28 @@ class InferenceLog(Base):
     success    = Column(Boolean, default=True)
 
 
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
+    username = Column(String(80), unique=True, nullable=False, index=True)
+    password_hash = Column(String, nullable=False)
+
+
+class AuthSession(Base):
+    __tablename__ = "auth_sessions"
+    token_hash = Column(String(64), primary_key=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False)
+
+
 # Create tables in the database
 def create_tables():
     """Create all database tables."""
     Base.metadata.create_all(bind=engine)
+    if "user_id" not in {column["name"] for column in inspect(engine).get_columns("inference_logs")}:
+        with engine.begin() as connection:
+            connection.execute(text("ALTER TABLE inference_logs ADD COLUMN user_id INTEGER"))
+            connection.execute(text("CREATE INDEX IF NOT EXISTS ix_inference_logs_user_id ON inference_logs (user_id)"))
 
 # Gives a database session for each API request
 def get_db():
@@ -53,7 +76,7 @@ def get_db():
 
 
 # Function to log inference requests to the database
-def log_inference(db, prompt: str, response: str, latency_ms: float, success: bool):
+def log_inference(db, prompt: str, response: str, latency_ms: float, success: bool, user_id: int | None = None):
     """
     Log inference request to database.
     Args:
@@ -64,6 +87,7 @@ def log_inference(db, prompt: str, response: str, latency_ms: float, success: bo
         success : whether inference was successful
     """
     log_entry = InferenceLog(
+        user_id=user_id,
         prompt=prompt,
         response=response,
         latency_ms=latency_ms,

@@ -22,10 +22,11 @@ button:focus-visible { outline: 2px solid var(--cm-accent); outline-offset: 3px;
 @media(prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
 </style></head>
 <body>
-<nav aria-label="Main navigation"><div class="brand">CodeMentor-LLM</div><div class="links">
-<div class="tip-wrap"><button id="workspace" aria-label="Workspace" aria-current="page"><span class="icon" aria-hidden="true">▦</span><span class="label">Workspace</span></button><span class="tooltip" role="tooltip">Workspace</span></div>
-<div class="tip-wrap"><button id="logs" aria-label="Request Log"><span class="icon" aria-hidden="true">☷</span><span class="label">Request Log</span></button><span class="tooltip" role="tooltip">Request Log</span></div>
-<div class="appearance tip-wrap"><button id="appearance" aria-label="Appearance" aria-describedby="appearance-tip"><span class="icon" aria-hidden="true">◐</span></button><span class="tooltip" id="appearance-tip" role="tooltip">Appearance</span></div>
+<nav aria-label="Main navigation"><button id="home" class="brand" aria-label="CodeMentor-LLM home">CodeMentor-LLM</button><div class="links">
+<div class="tip-wrap"><button id="workspace" aria-label="Workspace" aria-current="page"><span class="icon" aria-hidden="true">▦</span><span class="label">Workspace</span></button></div>
+<div class="tip-wrap"><button id="logs" aria-label="Request Log"><span class="icon" aria-hidden="true">☷</span><span class="label">Request Log</span></button></div>
+<div><button id="logout" aria-label="Log out"><span class="icon" aria-hidden="true">↪</span><span class="label">Log out</span></button></div>
+<div class="appearance tip-wrap"><button id="appearance" aria-label="Appearance"><span class="icon" aria-hidden="true">◐</span></button></div>
 </div></nav>
 <script>
 (() => {
@@ -96,6 +97,9 @@ button:focus-visible { outline: 2px solid var(--cm-accent); outline-offset: 3px;
     send('streamlit:setFrameHeight', {height: 108});
     if (hasQueuedChange) queueChange();
   });
+  document.getElementById('home').onclick = () => {
+    page = 'workspace'; render(); queueChange();
+  };
   document.getElementById('workspace').onclick = () => {
     if (page === 'workspace') return;
     page = 'workspace'; render(); queueChange();
@@ -103,6 +107,9 @@ button:focus-visible { outline: 2px solid var(--cm-accent); outline-offset: 3px;
   document.getElementById('logs').onclick = () => {
     if (page === 'logs') return;
     page = 'logs'; render(); queueChange();
+  };
+  document.getElementById('logout').onclick = () => {
+    page = 'logout'; render(); queueChange();
   };
   document.getElementById('appearance').onclick = () => {
     appearance = appearance === 'dark' ? 'light' : 'dark';

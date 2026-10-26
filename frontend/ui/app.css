@@ -104,3 +104,121 @@ button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px sol
   [data-testid="stHorizontalBlock"] > [data-testid="column"] { width: 100% !important; flex: 1 1 100% !important; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+
+/* Keep response content centered with equal room on both sides. */
+[data-testid="stChatMessage"] { box-sizing: border-box; padding: 24px; margin-inline: auto; }
+[data-testid="stChatMessageContent"] { min-width: 0; flex: 1; }
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] button { width: auto; padding: 0 24px; border-radius: var(--cm-radius); }
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] button p { position: static; width: auto; height: auto; clip-path: none; overflow: visible; }
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] button::after { content: none; }
+
+/* Account fields keep a white surface and provide clear hover/focus feedback. */
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] :is([data-baseweb="input"], [data-baseweb="base-input"]) {
+  background: #ffffff;
+  color: #202426;
+  border-radius: var(--cm-radius);
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] [data-baseweb="input"] {
+  border: 1px solid #d2dad6;
+}
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] input {
+  background: #ffffff;
+  color: #202426;
+  caret-color: #202426;
+  -webkit-text-fill-color: #202426;
+}
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] input::placeholder { color: #60686c; opacity: 1; }
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] button { background: #ffffff; color: #60686c; transition: color 180ms ease, background-color 180ms ease; }
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] button:hover { color: #246f60; background: #eaf2ef; }
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] [data-testid="InputInstructions"] { color: #60686c; }
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] [data-baseweb="input"]:hover {
+  border-color: #78a99b;
+  box-shadow: 0 0 0 3px #246f6010;
+}
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] [data-baseweb="input"]:focus-within {
+  border-color: #246f60;
+  box-shadow: 0 0 0 3px #246f6026;
+}
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] button {
+  transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] button:hover {
+  background: #246f60;
+  border-color: #246f60;
+  color: #ffffff;
+  box-shadow: 0 4px 12px #246f6026;
+  transform: translateY(-1px);
+}
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] button:active { transform: translateY(0); box-shadow: none; }
+@media (prefers-reduced-motion: reduce) {
+  [data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] button { transition: none; transform: none; }
+  [data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] :is([data-baseweb="input"], [data-baseweb="base-input"], button) { transition: none; }
+}
+
+/* Standalone account screen, centered without the signed-in navigation. */
+.block-container:has(.cm-auth-page) {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 688px;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 24px;
+}
+.block-container:has(.cm-auth-page) .cm-heading { margin-top: 0; }
+.block-container:has(.cm-auth-page) .cm-heading,
+.block-container:has(.cm-auth-page) [data-testid="stRadio"] { text-align: center; }
+.block-container:has(.cm-auth-page) [role="radiogroup"] { justify-content: center; }
+[data-testid="stElementContainer"]:has(> [data-testid="stMarkdown"] .cm-auth-page),
+[data-testid="element-container"]:has(> [data-testid="stMarkdown"] .cm-auth-page) { display: none; }
+
+/* Button-based account mode selection below the form. */
+.block-container:has(.cm-auth-page) [data-testid="stHorizontalBlock"] { flex-direction: row; }
+.block-container:has(.cm-auth-page) [data-testid="stHorizontalBlock"] > :is([data-testid="column"], [data-testid="stColumn"]) { min-width: 0; flex: 1 1 0 !important; width: auto !important; }
+.block-container:has(.cm-auth-page) [data-testid="stHorizontalBlock"] [data-testid="stButton"] button { justify-content: center; text-align: center; padding: 12px 16px; }
+.block-container:has(.cm-auth-page) [data-testid="stButton"] button[kind="primary"] { background: #246f60; color: #ffffff; border-color: #246f60; }
+.block-container:has(.cm-auth-page) [data-testid="stButton"] button[kind="primary"] p { color: inherit; }
+.block-container:has(.cm-auth-page) [data-testid="stButton"] button[kind="primary"]:hover { background: #1c594d; box-shadow: 0 4px 12px #246f6026; }
+[data-testid="stElementContainer"]:has(> [data-testid="stMarkdown"] .cm-auth-switch),
+[data-testid="element-container"]:has(> [data-testid="stMarkdown"] .cm-auth-switch) { display: none; }
+
+/* Center the account submit action in both login and sign-up forms. */
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] button {
+  width: auto;
+  min-width: 140px;
+  min-height: 44px;
+  padding: 12px 32px;
+  margin-inline: auto;
+  justify-content: center;
+}
+
+/* Reference palette for account actions, including Streamlit focus states. */
+.block-container:has(.cm-auth-page) { --cm-account-green: #0b5b46; --cm-account-green-hover: #084a39; }
+.block-container:has(.cm-auth-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button {
+  background: var(--cm-account-green) !important;
+  color: #ffffff !important;
+  border-color: var(--cm-account-green) !important;
+}
+.block-container:has(.cm-auth-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button :is(p, [data-testid="stMarkdownContainer"]) { color: #ffffff !important; }
+.block-container:has(.cm-auth-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button:hover {
+  background: var(--cm-account-green-hover) !important;
+  border-color: var(--cm-account-green-hover) !important;
+}
+.block-container:has(.cm-auth-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button:is(:focus, :active) {
+  border-color: var(--cm-account-green) !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+.block-container:has(.cm-auth-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button:focus-visible {
+  outline: 2px solid var(--cm-account-green) !important;
+  outline-offset: 3px;
+}
+/* Keep length limits while hiding the visible character counters. */
+[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] :is([data-testid="InputInstructions"], [data-testid="stInputInstructions"]) { display: none !important; }

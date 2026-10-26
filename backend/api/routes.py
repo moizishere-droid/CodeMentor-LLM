@@ -11,10 +11,12 @@ It is the bridge between:
 
 import json
 import time
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from api.auth import current_user
+from api.database import User
 from api.schemas import GenerateRequest, GenerateResponse, HealthResponse, LogsResponse
 from api.database import get_db, log_inference, InferenceLog, SessionLocal
 from api.model_loader import generate_response, stream_generate_response
@@ -36,7 +38,7 @@ def health_check():
 
 
 @router.post("/generate", response_model=GenerateResponse)
-def generate(request: GenerateRequest, db: Session = Depends(get_db)):
+def generate(request: GenerateRequest, db: Session = Depends(get_db), user: User = Depends(current_user)):
     """
     Generate response for a coding prompt.
     Args:
@@ -70,6 +72,7 @@ def generate(request: GenerateRequest, db: Session = Depends(get_db)):
     # Log to database
     log_inference(
         db=db,
+        user_id=user.id,
         prompt=request.prompt,
         response=result["response"],
         latency_ms=result["latency_ms"],
@@ -84,7 +87,7 @@ def generate(request: GenerateRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/generate/stream")
-def generate_stream(request: GenerateRequest):
+def generate_stream(request: GenerateRequest, user: User = Depends(current_user)):
     """Stream generated text to the frontend using server-sent events."""
     def event_stream():
         started_at = time.time()
@@ -101,6 +104,7 @@ def generate_stream(request: GenerateRequest):
             full_response = "".join(chunks)
             log_inference(
                 db=db,
+                user_id=user.id,
                 prompt=request.prompt,
                 response=full_response,
                 latency_ms=(time.time() - started_at) * 1000,
@@ -110,6 +114,7 @@ def generate_stream(request: GenerateRequest):
         except Exception as exc:
             log_inference(
                 db=db,
+                user_id=user.id,
                 prompt=request.prompt,
                 response=f"Error: {exc}",
                 latency_ms=(time.time() - started_at) * 1000,
@@ -128,19 +133,22 @@ def generate_stream(request: GenerateRequest):
 
 
 @router.get("/logs", response_model=LogsResponse)
-def get_logs(limit: int = 5, db: Session = Depends(get_db)):
+def get_logs(limit: int = Query(default=50, ge=1, le=100), offset: int = Query(default=0, ge=0), db: Session = Depends(get_db), user: User = Depends(current_user)):
     """
     Retrieve recent inference logs.
     Args:
-        limit: number of logs to retrieve (default 5)
+        limit: number of logs per page (default 50, maximum 100)
+        offset: number of logs to skip for pagination
         db   : database session
     Returns:
         LogsResponse with list of logs and total count
     """
-    logs = db.query(InferenceLog)\
+    query = db.query(InferenceLog).filter(InferenceLog.user_id == user.id)
+    logs = query\
              .order_by(InferenceLog.timestamp.desc())\
+             .offset(offset)\
              .limit(limit)\
              .all()
-    total = db.query(InferenceLog).count()
+    total = query.count()
 
     return LogsResponse(logs=logs, total=total)

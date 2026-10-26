@@ -24,14 +24,75 @@ st.set_page_config(
 )
 
 
+def require_session(response: requests.Response) -> None:
+    if response.status_code == 401:
+        st.session_state.clear()
+        st.rerun()
+
+
+def auth_headers() -> dict[str, str]:
+    return {"Authorization": f"Bearer {st.session_state.get('auth_token', '')}"}
+
+
+def set_account_mode(mode: str) -> None:
+    st.session_state.account_mode = mode
+
+
+def render_account() -> None:
+    st.markdown('<span class="cm-auth-page" aria-hidden="true"></span>', unsafe_allow_html=True)
+    render_heading("YOUR CODING WORKSPACE", "Welcome to CodeMentor", "Log in or create an account to save and revisit your responses.")
+    mode = st.session_state.get("account_mode", "Log in")
+    with st.form("account"):
+        st.markdown('<span class="cm-auth-form"></span>', unsafe_allow_html=True)
+        username = st.text_input("Username", max_chars=80)
+        password = st.text_input("Password", type="password", max_chars=128)
+        confirm = st.text_input("Confirm password", type="password", max_chars=128) if mode == "Sign up" else password
+        submitted = st.form_submit_button(mode)
+    with st.container():
+        st.markdown('<span class="cm-auth-switch" aria-hidden="true"></span>', unsafe_allow_html=True)
+        login, signup = st.columns(2)
+        login.button("Log in", key="account_login", on_click=set_account_mode,
+                     args=("Log in",), type="primary" if mode == "Log in" else "secondary",
+                     use_container_width=True)
+        signup.button("Sign up", key="account_signup", on_click=set_account_mode,
+                      args=("Sign up",), type="primary" if mode == "Sign up" else "secondary",
+                      use_container_width=True)
+    if submitted:
+        if len(username.strip()) < 3 or len(password) < 8:
+            st.error("Use a username of at least 3 characters and a password of at least 8 characters.")
+        elif password != confirm:
+            st.error("The passwords do not match.")
+        else:
+            try:
+                endpoint = "register" if mode == "Sign up" else "login"
+                response = requests.post(f"{API_URL}/auth/{endpoint}", json={"username": username, "password": password}, timeout=30)
+                if not response.ok:
+                    detail = response.json().get("detail", "Unable to sign in")
+                    st.error(detail if isinstance(detail, str) else "Check your username and password.")
+                    return
+                account = response.json()
+                st.session_state.clear()
+                st.session_state.auth_token = account["token"]
+                st.session_state.username = account["username"]
+                # Restore the last saved answer immediately on login.
+                history = requests.get(f"{API_URL}/logs?limit=1", headers=auth_headers(), timeout=30)
+                if history.ok and history.json()["logs"]:
+                    st.session_state.answer = history.json()["logs"][0]["response"]
+                st.rerun()
+            except (requests.RequestException, ValueError):
+                st.error("The account service is unavailable. Please try again.")
+
+
 def stream_response(prompt: str) -> Iterator[str]:
     """Consume the existing server-sent token stream without altering its payload."""
     with requests.post(
         f"{API_URL}/generate/stream",
         json={"prompt": prompt, "max_new_tokens": MAX_RESPONSE_TOKENS},
+        headers=auth_headers(),
         stream=True,
         timeout=(30, 180),
     ) as response:
+        require_session(response)
         response.raise_for_status()
         for line in response.iter_lines(chunk_size=1, decode_unicode=True):
             if not line or not line.startswith("data:"):
@@ -189,12 +250,15 @@ def render_logs() -> None:
         "WORKSPACE ACTIVITY", "Request log", "Review your questions, responses, and request status.",
         wide=True,
     )
-    st.caption("Admin view · Latest 50 requests")
+    st.caption("Your saved responses · 50 per page")
+    page_number = st.number_input("History page", min_value=1, value=1, step=1)
     refresh = st.button("Refresh logs")
     try:
-        if refresh or "request_log_data" not in st.session_state:
+        if refresh or "request_log_data" not in st.session_state or st.session_state.get("history_page") != page_number:
             with st.spinner("Loading requests…"):
-                response = requests.get(f"{API_URL}/logs?limit=50", timeout=30)
+                response = requests.get(f"{API_URL}/logs", params={"limit": 50, "offset": (page_number - 1) * 50}, headers=auth_headers(), timeout=30)
+                st.session_state.history_page = page_number
+                require_session(response)
                 response.raise_for_status()
                 st.session_state.request_log_data = response.json()
         data = st.session_state.request_log_data
@@ -225,7 +289,22 @@ def render_logs() -> None:
         st.error(f"We couldn’t load the request log: {error}")
 
 
-if render_shell() == "logs":
-    render_logs()
+page = render_shell(show_navigation="auth_token" in st.session_state)
+if "auth_token" not in st.session_state:
+    render_account()
 else:
-    render_workspace()
+    if page == "logout":
+        try:
+            response = requests.post(f"{API_URL}/auth/logout", headers=auth_headers(), timeout=30)
+            if response.status_code != 401:
+                response.raise_for_status()
+        except requests.RequestException:
+            st.session_state.page = "workspace"
+            st.error("Could not log out. Please select Log out again to retry.")
+            st.stop()
+        st.session_state.clear()
+        st.rerun()
+    if page == "logs":
+        render_logs()
+    else:
+        render_workspace()

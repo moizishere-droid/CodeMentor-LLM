@@ -15,8 +15,25 @@ from api.main import app
 from api.database import create_tables
 
 @pytest.fixture(autouse=True)
-def setup_db():
+def setup_db(tmp_path, monkeypatch):
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+    from api import database
+    from api.database import get_db
+    engine = create_engine(f"sqlite:///{tmp_path / 'api.db'}", connect_args={"check_same_thread": False})
+    monkeypatch.setattr(database, "engine", engine)
     create_tables()
+    factory = sessionmaker(bind=engine)
+    def session():
+        with factory() as db:
+            yield db
+    app.dependency_overrides[get_db] = session
+    account = client.post("/auth/register", json={"username": "api-test", "password": "test-password"}).json()
+    client.headers["Authorization"] = "Bearer " + account["token"]
+    yield
+    client.headers.pop("Authorization", None)
+    app.dependency_overrides.clear()
+    engine.dispose()
 
 client = TestClient(app)
 
@@ -38,7 +55,7 @@ def test_generate_endpoint_valid():
         "latency_ms": 100.0,
         "success": True
     }
-    with patch("api.model_loader.generate_response", return_value=mock_result):
+    with patch("api.routes.generate_response", return_value=mock_result):
         response = client.post(
             "/generate",
             json={
