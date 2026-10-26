@@ -7,6 +7,8 @@
   --cm-border: light-dark(#e1e6e3, #383e3b);
   --cm-accent: light-dark(#246f60, #99d9c8);
   --cm-accent-soft: light-dark(#eaf2ef, #263c35);
+  --cm-danger: light-dark(#a52c33, #ffb0b5);
+  --cm-danger-soft: light-dark(#fff0f0, #442529);
   --cm-radius: 12px;
   --cm-radius-lg: 20px;
   --cm-pill: 999px;

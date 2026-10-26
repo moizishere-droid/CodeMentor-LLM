@@ -19,6 +19,7 @@ def render_shell() -> str:
     event = _header(
         page=st.session_state.page,
         appearance=st.session_state.appearance,
+        ack_revision=st.session_state.get("last_header_event", {}).get("revision", 0),
         key="main_navigation",
         default=None,
     )
@@ -41,10 +42,10 @@ def render_shell() -> str:
     return str(st.session_state.page)
 
 
-def render_heading(eyebrow: str, title: str, description: str) -> None:
+def render_heading(eyebrow: str, title: str, description: str, *, wide: bool = False) -> None:
     """Render escaped page copy."""
     st.markdown(
-        '<div class="cm-heading">'
+        f'<div class="cm-heading{" cm-heading-wide" if wide else ""}">'
         f'<span class="cm-eyebrow">{escape(eyebrow)}</span>'
         f"<h1>{escape(title)}</h1><p>{escape(description)}</p></div>",
         unsafe_allow_html=True,

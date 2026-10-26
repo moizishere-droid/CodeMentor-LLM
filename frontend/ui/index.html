@@ -4,6 +4,7 @@
 <style>
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--cm-bg); color: var(--cm-text); font-family: var(--cm-font); }
+body, nav, .appearance { transition: background-color var(--cm-transition), color var(--cm-transition), border-color var(--cm-transition); }
 nav { display: flex; align-items: center; gap: var(--cm-space-2); min-height: 76px; border-bottom: 1px solid var(--cm-border); padding: 0 var(--cm-space-2); }
 .brand { font-size: 19px; font-weight: 650; letter-spacing: -.04em; white-space: nowrap; margin-right: auto; }
 .links { display: flex; gap: var(--cm-space-2); align-items: center; }
@@ -18,7 +19,7 @@ button:focus-visible { outline: 2px solid var(--cm-accent); outline-offset: 3px;
 .tooltip { display: none; position: absolute; top: 48px; right: 0; padding: var(--cm-space-1) var(--cm-space-2); background: var(--cm-text); color: var(--cm-bg); border-radius: 6px; font-size: var(--cm-small); white-space: nowrap; z-index: 2; }
 .tip-wrap:hover .tooltip, .tip-wrap:focus-within .tooltip { display: block; }
 @media(max-width: 520px) { .brand { font-size: 17px; } .label { display: none; } nav, .links { gap: var(--cm-space-1); } button { padding: 0; width: 44px; } .appearance { padding-left: var(--cm-space-1); } }
-@media(prefers-reduced-motion: reduce) { button { transition: none; } }
+@media(prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
 </style></head>
 <body>
 <nav aria-label="Main navigation"><div class="brand">CodeMentor-LLM</div><div class="links">
@@ -31,6 +32,7 @@ button:focus-visible { outline: 2px solid var(--cm-accent); outline-offset: 3px;
   let page = 'workspace';
   let appearance = 'light';
   let revision = 0;
+  let pendingRevision = 0;
   const send = (type, payload = {}) => window.parent.postMessage({isStreamlitMessage: true, type, ...payload}, '*');
   const render = () => {
     document.documentElement.style.colorScheme = appearance;
@@ -40,17 +42,45 @@ button:focus-visible { outline: 2px solid var(--cm-accent); outline-offset: 3px;
       else button.removeAttribute('aria-current');
     }
   };
-  const emit = () => { render(); send('streamlit:setComponentValue', {value: {page, appearance, revision: ++revision}}); };
+  const applyAppearance = () => {
+    // This local component is served from the app's own origin. Update both
+    // documents in the same task rather than waiting for a Python round trip.
+    try {
+      const appRoot = window.parent.document.documentElement;
+      appRoot.style.setProperty('--cm-appearance', appearance);
+      appRoot.style.colorScheme = appearance;
+    } catch {
+      // Cross-origin embeds wait for the server acknowledgement instead.
+      return false;
+    }
+    document.documentElement.style.colorScheme = appearance;
+    return true;
+  };
+  const emit = () => {
+    pendingRevision = ++revision;
+    send('streamlit:setComponentValue', {value: {page, appearance, revision}});
+  };
   window.addEventListener('message', event => {
     if (event.source !== window.parent || event.data?.type !== 'streamlit:render') return;
+    const acknowledged = event.data.args.ack_revision || 0;
+    revision = Math.max(revision, acknowledged);
+    // An older rerun can arrive while a new selection is being acknowledged.
+    if (acknowledged < pendingRevision) return;
+    pendingRevision = 0;
+    document.documentElement.dataset.revision = String(acknowledged);
     page = event.data.args.page;
     appearance = event.data.args.appearance;
+    applyAppearance();
     render();
     send('streamlit:setFrameHeight', {height: 108});
   });
-  document.getElementById('workspace').onclick = () => { page = 'workspace'; emit(); };
-  document.getElementById('logs').onclick = () => { page = 'logs'; emit(); };
-  document.getElementById('appearance').onclick = () => { appearance = appearance === 'dark' ? 'light' : 'dark'; emit(); };
+  document.getElementById('workspace').onclick = () => { page = 'workspace'; render(); emit(); };
+  document.getElementById('logs').onclick = () => { page = 'logs'; render(); emit(); };
+  document.getElementById('appearance').onclick = () => {
+    appearance = appearance === 'dark' ? 'light' : 'dark';
+    applyAppearance();
+    emit();
+  };
   send('streamlit:componentReady', {apiVersion: 1});
   send('streamlit:setFrameHeight', {height: 108});
 })();
