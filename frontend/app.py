@@ -3,8 +3,8 @@
 import json
 import os
 from collections.abc import Iterator
+from html import escape
 
-import pandas as pd
 import requests
 import streamlit as st
 from dotenv import load_dotenv
@@ -47,13 +47,37 @@ def set_prompt(value: str) -> None:
     st.session_state.prompt = value
 
 
+def prepare_question() -> None:
+    """Capture the submitted text and clear only a valid, submitted draft."""
+    if st.session_state.prompt.strip():
+        st.session_state.submitted_question = st.session_state.prompt
+        st.session_state.prompt = ""
+        st.session_state.draft = ""
+
+
 def render_workspace() -> None:
     st.session_state.setdefault("prompt", st.session_state.get("draft", ""))
-    render_heading(
-        "A CLEARER WAY TO CODE",
-        "Let’s work it out, together.",
-        "Untangle a bug, explore an idea, or build something new.",
-    )
+    has_asked = st.session_state.get("has_asked", False) or "answer" in st.session_state
+    intro = st.empty()
+    response_area = st.empty()
+    next_question = st.empty()
+    if not has_asked:
+        with intro.container():
+            render_heading(
+                "A CLEARER WAY TO CODE",
+                "Let’s work it out, together.",
+                "Untangle a bug, explore an idea, or build something new.",
+            )
+    if "answer" in st.session_state:
+        with response_area.container(), st.chat_message("assistant"):
+            st.markdown(st.session_state.answer)
+    elif "response_error" in st.session_state:
+        response_area.error(st.session_state.response_error)
+    if has_asked:
+        next_question.markdown(
+            '<p class="cm-next-question">Ask another coding question</p>', unsafe_allow_html=True
+        )
+
     with st.form("question", clear_on_submit=False):
         prompt = st.text_area(
             "Your coding question",
@@ -69,32 +93,47 @@ def render_workspace() -> None:
                 unsafe_allow_html=True,
             )
         with send:
-            submitted = st.form_submit_button("Send question", type="primary", help="Send question")
+            submitted = st.form_submit_button(
+                "Send question", type="primary", help="Send question", on_click=prepare_question
+            )
 
-    suggestions = (
-        ("Find the bug", "Help me debug this Python function."),
-        ("Understand a concept", "Explain Python list comprehensions with a simple example."),
-        ("Build something", "Write a Python function to reverse a string."),
-    )
-    for column, (label, suggestion) in zip(st.columns(3), suggestions):
-        column.button(label, on_click=set_prompt, args=(suggestion,), use_container_width=True)
+    question = st.session_state.pop("submitted_question", prompt) if submitted else ""
 
-    if submitted and not prompt.strip():
+    suggestions_area = st.empty()
+    if not has_asked:
+        with suggestions_area.container():
+            suggestions = (
+                ("Find the bug", "Help me debug this Python function."),
+                ("Understand a concept", "Explain Python list comprehensions with a simple example."),
+                ("Build something", "Write a Python function to reverse a string."),
+            )
+            for column, (label, suggestion) in zip(st.columns(3), suggestions):
+                column.button(label, on_click=set_prompt, args=(suggestion,), use_container_width=True)
+
+    if submitted and not question.strip():
         st.warning("Enter a coding question before sending.")
     elif submitted:
+        intro.empty()
+        suggestions_area.empty()
+        response_area.empty()
+        next_question.markdown(
+            '<p class="cm-next-question">Ask another coding question</p>', unsafe_allow_html=True
+        )
+        st.session_state.has_asked = True
+        st.session_state.draft = ""
         st.session_state.pop("answer", None)
+        st.session_state.pop("response_error", None)
         try:
-            with st.chat_message("assistant"), st.spinner("Working on your question…"):
-                st.session_state.answer = st.write_stream(stream_response(prompt))
+            with response_area.container(), st.chat_message("assistant"), st.spinner("Working on your question…"):
+                st.session_state.answer = st.write_stream(stream_response(question))
         except requests.exceptions.ConnectionError:
-            st.error("The coding service is unavailable. Please try again shortly.")
+            st.session_state.response_error = "The coding service is unavailable. Please try again shortly."
         except requests.exceptions.Timeout:
-            st.error("The request took too long. Please try again.")
+            st.session_state.response_error = "The request took too long. Please try again."
         except (requests.RequestException, RuntimeError, ValueError, KeyError, TypeError) as error:
-            st.error(f"We couldn’t complete your request: {error}")
-    elif "answer" in st.session_state:
-        with st.chat_message("assistant"):
-            st.markdown(st.session_state.answer)
+            st.session_state.response_error = f"We couldn’t complete your request: {error}"
+        if "response_error" in st.session_state:
+            response_area.error(st.session_state.response_error)
 
     st.markdown(
         '<p class="cm-footer">AI can make mistakes. Review and test generated code.</p>',
@@ -102,9 +141,29 @@ def render_workspace() -> None:
     )
 
 
+def render_log_record(record: dict[str, object]) -> None:
+    """Show each prompt and its complete answer without a nested scroll area."""
+    succeeded = record["success"] is True
+    status = "Success" if succeeded else "Failed"
+    status_class = "cm-status-success" if succeeded else "cm-status-failed"
+    with st.container(border=True):
+        st.markdown(
+            '<div class="cm-log-header">'
+            f'<strong>Request #{escape(str(record["id"]))}</strong>'
+            f'<span class="cm-status {status_class}" aria-label="Status: {status}">{status}</span>'
+            '</div>'
+            '<p class="cm-log-label">Prompt</p>'
+            f'<p class="cm-log-prompt">{escape(str(record["prompt"]))}</p>',
+            unsafe_allow_html=True,
+        )
+        st.markdown('<p class="cm-log-label">Response</p>', unsafe_allow_html=True)
+        st.markdown(str(record["response"]))
+
+
 def render_logs() -> None:
     render_heading(
-        "WORKSPACE ACTIVITY", "Request log", "Review recent requests and their generation details."
+        "WORKSPACE ACTIVITY", "Request log", "Review your questions, responses, and request status.",
+        wide=True,
     )
     st.caption("Admin view · Latest 50 requests")
     st.button("Refresh logs")
@@ -115,9 +174,8 @@ def render_logs() -> None:
             data = response.json()
         st.caption(f"Total requests: {data['total']}")
         if data["logs"]:
-            frame = pd.DataFrame(data["logs"])
-            frame = frame[["id", "prompt", "response", "latency_ms", "timestamp", "success"]]
-            st.dataframe(frame, use_container_width=True, hide_index=True)
+            for record in data["logs"]:
+                render_log_record(record)
         else:
             st.info("No requests yet. Send a coding question to see its details here.")
     except requests.exceptions.Timeout:

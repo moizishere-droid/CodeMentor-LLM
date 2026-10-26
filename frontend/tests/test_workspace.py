@@ -57,6 +57,7 @@ def test_streaming_contract_and_response_survives_rerender():
     app.session_state.appearance = "dark"
     app.run()
     assert app.session_state.answer == "Hello world"
+    assert app.text_area[0].value == ""
 
 
 @pytest.mark.parametrize("error", [requests.ConnectionError(), requests.Timeout(), RuntimeError("Failed")])
@@ -84,7 +85,7 @@ def test_logs_empty_and_http_error_states():
     assert "couldn’t load" in app.error[0].value
 
 
-def test_logs_keep_every_existing_field():
+def test_logs_present_only_requested_fields_with_full_response():
     app = workspace()
     app.session_state.page = "logs"
     response = MagicMock()
@@ -95,9 +96,15 @@ def test_logs_keep_every_existing_field():
     with patch("requests.get", return_value=response):
         app.run()
     assert not app.exception
-    assert list(app.dataframe[0].value.columns) == [
-        "id", "prompt", "response", "latency_ms", "timestamp", "success",
-    ]
+    content = "\n".join(item.value for item in app.markdown)
+    assert "Request #1" in content
+    assert "Question" in content
+    assert "Success" in content
+    assert "Answer" in content
+    assert "latency_ms" not in content
+    assert "2026-10-26T12:00:00" not in content
+    assert not app.expander
+    assert not app.dataframe
 
 
 def test_draft_survives_navigation():
@@ -116,3 +123,41 @@ def test_combined_deployment_matches_frontend():
     assert (FRONTEND / "app.py").read_bytes() == (combined / "streamlit_app.py").read_bytes()
     for name in ("__init__.py", "tokens.css", "app.css", "index.html"):
         assert (FRONTEND / "ui" / name).read_bytes() == (combined / "ui" / name).read_bytes()
+
+
+def test_response_replaces_welcome_and_followup_replaces_previous_answer():
+    response = MagicMock()
+    response.__enter__.return_value = response
+    response.iter_lines.return_value = ['data: {"token": "First answer"}', "data: [DONE]"]
+    app = workspace()
+    with patch("requests.post", return_value=response):
+        submit(app, "First question")
+    content = "\n".join(item.value for item in app.markdown)
+    assert "Let’s work it out" not in content
+    assert "First answer" in content
+    assert "Ask another coding question" in content
+    assert len(app.button) == 1
+    response.iter_lines.return_value = ['data: {"token": "Second answer"}', "data: [DONE]"]
+    with patch("requests.post", return_value=response):
+        submit(app, "Second question")
+    content = "\n".join(item.value for item in app.markdown)
+    assert "Second answer" in content
+    assert "First answer" not in content
+    assert len(app.chat_message) == 1
+
+
+def test_failed_log_status_and_escaped_prompt():
+    app = workspace()
+    app.session_state.page = "logs"
+    response = MagicMock()
+    response.json.return_value = {"total": 1, "logs": [{
+        "id": 9, "prompt": "<script>alert('test')</script>", "response": "Service unavailable",
+        "success": False, "latency_ms": 99, "timestamp": "hidden timestamp",
+    }]}
+    with patch("requests.get", return_value=response):
+        app.run()
+    content = "\n".join(item.value for item in app.markdown)
+    assert "Status: Failed" in content
+    assert "&lt;script&gt;" in content
+    assert "<script>" not in content
+    assert "hidden timestamp" not in content
