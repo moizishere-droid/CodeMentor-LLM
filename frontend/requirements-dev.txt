@@ -1,0 +1,7 @@
+-r requirements.txt
+pytest>=8,<10
+ruff
+mypy
+pandas-stubs
+types-requests
+playwright
