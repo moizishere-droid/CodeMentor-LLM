@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="tokens.css">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--cm-bg); color: var(--cm-text); font-family: var(--cm-font); }
+nav { display: flex; align-items: center; gap: var(--cm-space-2); min-height: 76px; border-bottom: 1px solid var(--cm-border); padding: 0 var(--cm-space-2); }
+.brand { font-size: 19px; font-weight: 650; letter-spacing: -.04em; white-space: nowrap; margin-right: auto; }
+.links { display: flex; gap: var(--cm-space-2); align-items: center; }
+button { display: inline-flex; align-items: center; justify-content: center; gap: var(--cm-space-2); min-height: 44px; min-width: 44px; padding: 0 var(--cm-space-3); border: 0; border-radius: var(--cm-radius); background: transparent; color: var(--cm-muted); font: 500 13px var(--cm-font); cursor: pointer; transition: background var(--cm-transition), color var(--cm-transition), transform var(--cm-transition); }
+button:hover { background: var(--cm-surface); color: var(--cm-text); transform: translateY(-1px); }
+button[aria-current="page"] { background: var(--cm-accent-soft); color: var(--cm-accent); }
+button:focus-visible { outline: 2px solid var(--cm-accent); outline-offset: 3px; }
+.icon { font-size: 19px; line-height: 1; }
+.appearance { border-left: 1px solid var(--cm-border); padding-left: var(--cm-space-2); }
+.appearance button { width: 44px; padding: 0; }
+.tip-wrap { position: relative; }
+.tooltip { display: none; position: absolute; top: 48px; right: 0; padding: var(--cm-space-1) var(--cm-space-2); background: var(--cm-text); color: var(--cm-bg); border-radius: 6px; font-size: var(--cm-small); white-space: nowrap; z-index: 2; }
+.tip-wrap:hover .tooltip, .tip-wrap:focus-within .tooltip { display: block; }
+@media(max-width: 520px) { .brand { font-size: 17px; } .label { display: none; } nav, .links { gap: var(--cm-space-1); } button { padding: 0; width: 44px; } .appearance { padding-left: var(--cm-space-1); } }
+@media(prefers-reduced-motion: reduce) { button { transition: none; } }
+</style></head>
+<body>
+<nav aria-label="Main navigation"><div class="brand">CodeMentor-LLM</div><div class="links">
+<div class="tip-wrap"><button id="workspace" aria-label="Workspace" aria-current="page"><span class="icon" aria-hidden="true">▦</span><span class="label">Workspace</span></button><span class="tooltip" role="tooltip">Workspace</span></div>
+<div class="tip-wrap"><button id="logs" aria-label="Request Log"><span class="icon" aria-hidden="true">☷</span><span class="label">Request Log</span></button><span class="tooltip" role="tooltip">Request Log</span></div>
+<div class="appearance tip-wrap"><button id="appearance" aria-label="Appearance" aria-describedby="appearance-tip"><span class="icon" aria-hidden="true">◐</span></button><span class="tooltip" id="appearance-tip" role="tooltip">Appearance</span></div>
+</div></nav>
+<script>
+(() => {
+  let page = 'workspace';
+  let appearance = 'light';
+  let revision = 0;
+  const send = (type, payload = {}) => window.parent.postMessage({isStreamlitMessage: true, type, ...payload}, '*');
+  const render = () => {
+    document.documentElement.style.colorScheme = appearance;
+    for (const id of ['workspace', 'logs']) {
+      const button = document.getElementById(id);
+      if (id === page) button.setAttribute('aria-current', 'page');
+      else button.removeAttribute('aria-current');
+    }
+  };
+  const emit = () => { render(); send('streamlit:setComponentValue', {value: {page, appearance, revision: ++revision}}); };
+  window.addEventListener('message', event => {
+    if (event.source !== window.parent || event.data?.type !== 'streamlit:render') return;
+    page = event.data.args.page;
+    appearance = event.data.args.appearance;
+    render();
+    send('streamlit:setFrameHeight', {height: 108});
+  });
+  document.getElementById('workspace').onclick = () => { page = 'workspace'; emit(); };
+  document.getElementById('logs').onclick = () => { page = 'logs'; emit(); };
+  document.getElementById('appearance').onclick = () => { appearance = appearance === 'dark' ? 'light' : 'dark'; emit(); };
+  send('streamlit:componentReady', {apiVersion: 1});
+  send('streamlit:setFrameHeight', {height: 108});
+})();
+</script></body></html>

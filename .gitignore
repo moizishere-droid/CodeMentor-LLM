@@ -1,6 +1,11 @@
 '''
 # Virtual environment
 venv/
+.ui-tools/
+.ui-checks/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
 
 # Environment variables
 .env
