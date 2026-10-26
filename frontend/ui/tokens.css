@@ -25,4 +25,10 @@
   --cm-body: 16px;
   --cm-heading: clamp(28px, 4vw, 36px);
   --cm-transition: 180ms ease;
+  --cm-response-bg: light-dark(#f0f3f2, #1b1c1e);
+  --cm-selection-bg: light-dark(#bde3d5, #335d51);
+  --cm-composer-bg: #202426;
+  --cm-composer-text: #f1f3f2;
+  --cm-composer-muted: #b7c1be;
+  --cm-composer-border: #414b47;
 }

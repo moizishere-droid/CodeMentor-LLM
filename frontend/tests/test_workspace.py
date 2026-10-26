@@ -51,7 +51,7 @@ def test_streaming_contract_and_response_survives_rerender():
     assert not app.exception
     assert app.session_state.answer == "Hello world"
     assert post.call_args.kwargs == {
-        "json": {"prompt": "Explain decorators", "max_new_tokens": 512},
+        "json": {"prompt": "Explain decorators", "max_new_tokens": 1024},
         "stream": True, "timeout": (30, 180),
     }
     app.session_state.appearance = "dark"
@@ -161,3 +161,25 @@ def test_failed_log_status_and_escaped_prompt():
     assert "&lt;script&gt;" in content
     assert "<script>" not in content
     assert "hidden timestamp" not in content
+
+
+def test_interrupted_stream_preserves_partial_answer_and_reports_failure():
+    response = MagicMock()
+    response.__enter__.return_value = response
+    response.iter_lines.return_value = ['data: {"token": "Partial answer"}']
+    app = workspace()
+    with patch("requests.post", return_value=response):
+        submit(app, "A coding question")
+    assert not app.exception
+    assert app.session_state.answer == "Partial answer"
+    assert "ended early" in app.error[0].value
+
+
+def test_empty_completed_stream_is_not_reported_as_a_success():
+    response = MagicMock()
+    response.__enter__.return_value = response
+    response.iter_lines.return_value = ["data: [DONE]"]
+    app = workspace()
+    with patch("requests.post", return_value=response):
+        submit(app, "A coding question")
+    assert "empty answer" in app.error[0].value

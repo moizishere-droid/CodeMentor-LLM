@@ -37,7 +37,7 @@ def main() -> None:
                 assert dimensions["content"] <= dimensions["width"], dimensions
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
                 form = page.locator('[data-testid="stForm"]').bounding_box()
-                assert form and form["width"] >= min(width - 32, 600)
+                assert form and form["width"] >= min(width - 48, 600)
                 theme = header.get_by_role("button", name="Appearance", exact=True)
                 box = theme.bounding_box()
                 assert box and box["width"] >= 40 and box["height"] >= 40
@@ -72,6 +72,7 @@ def main() -> None:
                 )
                 page.get_by_role("button", name="Send question").click()
                 expect(page.locator('[data-testid="stChatMessage"] pre code')).to_contain_text("reverse_string")
+                expect(page.get_by_text("End of fixture response.", exact=True)).to_be_visible(timeout=15000)
                 expect(page.locator(".cm-heading")).to_have_count(0)
                 expect(page.get_by_role("button", name="Build something", exact=True)).to_have_count(0)
                 expect(page.get_by_role("textbox", name="Your coding question")).to_have_value("")

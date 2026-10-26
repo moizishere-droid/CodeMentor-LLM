@@ -4,6 +4,7 @@ import json
 import os
 from collections.abc import Iterator
 from html import escape
+from time import monotonic
 
 import requests
 import streamlit as st
@@ -12,6 +13,8 @@ from ui import render_heading, render_shell
 
 load_dotenv()
 API_URL = os.getenv("API_URL", "http://localhost:8000")
+MAX_RESPONSE_TOKENS = 1024
+STREAM_RENDER_INTERVAL = 0.08
 
 st.set_page_config(
     page_title="CodeMentor-LLM | Coding workspace",
@@ -25,7 +28,7 @@ def stream_response(prompt: str) -> Iterator[str]:
     """Consume the existing server-sent token stream without altering its payload."""
     with requests.post(
         f"{API_URL}/generate/stream",
-        json={"prompt": prompt, "max_new_tokens": 512},
+        json={"prompt": prompt, "max_new_tokens": MAX_RESPONSE_TOKENS},
         stream=True,
         timeout=(30, 180),
     ) as response:
@@ -41,6 +44,27 @@ def stream_response(prompt: str) -> Iterator[str]:
                 raise RuntimeError(event["error"])
             if "token" in event:
                 yield event["token"]
+        raise RuntimeError("The response connection ended early. Please try your question again.")
+
+
+def render_response_stream(prompt: str) -> str:
+    """Batch Markdown updates without the per-character typewriter cursor."""
+    output = st.empty()
+    output.markdown('<p class="cm-waiting" role="status">Working on your question…</p>', unsafe_allow_html=True)
+    chunks: list[str] = []
+    last_render = 0.0
+    for chunk in stream_response(prompt):
+        chunks.append(chunk)
+        st.session_state.answer = "".join(chunks)
+        now = monotonic()
+        if now - last_render >= STREAM_RENDER_INTERVAL:
+            output.markdown(st.session_state.answer)
+            last_render = now
+    answer = "".join(chunks)
+    if not answer.strip():
+        raise RuntimeError("The service returned an empty answer. Please try again.")
+    output.markdown(answer)
+    return answer
 
 
 def set_prompt(value: str) -> None:
@@ -53,6 +77,7 @@ def prepare_question() -> None:
         st.session_state.submitted_question = st.session_state.prompt
         st.session_state.prompt = ""
         st.session_state.draft = ""
+        st.session_state.has_asked = True
 
 
 def render_workspace() -> None:
@@ -60,6 +85,7 @@ def render_workspace() -> None:
     has_asked = st.session_state.get("has_asked", False) or "answer" in st.session_state
     intro = st.empty()
     response_area = st.empty()
+    feedback_area = st.empty()
     next_question = st.empty()
     if not has_asked:
         with intro.container():
@@ -71,27 +97,33 @@ def render_workspace() -> None:
     if "answer" in st.session_state:
         with response_area.container(), st.chat_message("assistant"):
             st.markdown(st.session_state.answer)
-    elif "response_error" in st.session_state:
-        response_area.error(st.session_state.response_error)
+    if "response_error" in st.session_state:
+        feedback_area.error(st.session_state.response_error)
     if has_asked:
         next_question.markdown(
             '<p class="cm-next-question">Ask another coding question</p>', unsafe_allow_html=True
         )
 
     with st.form("question", clear_on_submit=False):
-        prompt = st.text_area(
-            "Your coding question",
-            placeholder="What are you working on?",
-            height=120,
-            key="prompt",
-            label_visibility="collapsed",
-        )
-        model, send = st.columns([6, 1])
-        with model:
-            st.markdown(
-                '<span class="cm-model">Llama 3.2 · Coding assistant</span>',
-                unsafe_allow_html=True,
+        if has_asked:
+            st.markdown('<span class="cm-compact-composer" aria-hidden="true"></span>', unsafe_allow_html=True)
+            entry, send = st.columns([12, 1])
+            with entry:
+                prompt = st.text_area(
+                    "Your coding question", placeholder="Ask another coding question…",
+                    height=68, key="prompt", label_visibility="collapsed",
+                )
+        else:
+            prompt = st.text_area(
+                "Your coding question", placeholder="What are you working on?",
+                height=120, key="prompt", label_visibility="collapsed",
             )
+            model, send = st.columns([6, 1])
+            with model:
+                st.markdown(
+                    '<span class="cm-model">Llama 3.2 · Coding assistant</span>',
+                    unsafe_allow_html=True,
+                )
         with send:
             submitted = st.form_submit_button(
                 "Send question", type="primary", help="Send question", on_click=prepare_question
@@ -116,6 +148,7 @@ def render_workspace() -> None:
         intro.empty()
         suggestions_area.empty()
         response_area.empty()
+        feedback_area.empty()
         next_question.markdown(
             '<p class="cm-next-question">Ask another coding question</p>', unsafe_allow_html=True
         )
@@ -124,8 +157,8 @@ def render_workspace() -> None:
         st.session_state.pop("answer", None)
         st.session_state.pop("response_error", None)
         try:
-            with response_area.container(), st.chat_message("assistant"), st.spinner("Working on your question…"):
-                st.session_state.answer = st.write_stream(stream_response(question))
+            with response_area.container(), st.chat_message("assistant"):
+                st.session_state.answer = render_response_stream(question)
         except requests.exceptions.ConnectionError:
             st.session_state.response_error = "The coding service is unavailable. Please try again shortly."
         except requests.exceptions.Timeout:
@@ -133,7 +166,7 @@ def render_workspace() -> None:
         except (requests.RequestException, RuntimeError, ValueError, KeyError, TypeError) as error:
             st.session_state.response_error = f"We couldn’t complete your request: {error}"
         if "response_error" in st.session_state:
-            response_area.error(st.session_state.response_error)
+            feedback_area.error(st.session_state.response_error)
 
     st.markdown(
         '<p class="cm-footer">AI can make mistakes. Review and test generated code.</p>',
