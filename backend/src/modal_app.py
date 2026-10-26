@@ -189,13 +189,13 @@ model = CodeMentorModel()
 @app.function(image=image)
 @modal.fastapi_endpoint(method="POST")
 def generate_endpoint(item: dict) -> dict:
-    # Allow the frontend's 512-token request so longer answers are not cut off at 256.
+    # Match the existing FastAPI schema's 1024-token maximum for longer answers.
     try:
         requested_tokens = int(item.get("max_new_tokens", 512))
     except (TypeError, ValueError):
         requested_tokens = 512
 
-    max_new_tokens = max(1, min(requested_tokens, 512))
+    max_new_tokens = max(1, min(requested_tokens, 1024))
 
     if item.get("stream"):
         import json
