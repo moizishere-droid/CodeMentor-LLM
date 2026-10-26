@@ -2,7 +2,8 @@
 
 The existing Streamlit 1.35 application remains the frontend. Backend routes,
 request fields, model weights, and database schemas are unchanged. The frontend
-now requests the existing API maximum of 1024 response tokens. Modal's serving
+uses 512 response tokens in Normal mode and up to 1024 when the user selects
+Detailed code. Modal's serving
 cap is aligned to that same maximum rather than silently reducing it to 512.
 Deploying this cap correction requires redeploying `backend/src/modal_app.py` to
 Modal as well as updating the frontend. A Space-only push cannot update Modal.
@@ -16,11 +17,15 @@ Modal as well as updating the frontend. A Space-only push cannot update Modal.
   The follow-up composer is a wider, compact dark bar in both themes. Native
   response headings have explicit theme-aware foregrounds and a stronger neutral
   card background; text-selection colors stay readable in both appearances.
-- Request Log: full-width cards show ID, prompt, complete Markdown response, and
-  Success/Failed status. Responses are fully open, with no table cells, collapsed
+- Request Log: the left sidebar lists Request 1, Request 2, and short prompt
+  titles. Choosing an item opens its full prompt, Markdown response, and status
+  in the main area. On mobile the history becomes a collapsible drawer.
+  Responses are fully open, with no table cells, collapsed
   sections, or nested vertical scrolling. Latency and timestamps stay in the API
   but are omitted from the interface. Refresh, totals, empty and error states
-  remain. This is the existing admin view, without new authorization behavior.
+  remain. History is fetched when opening the log view or refreshing; selecting
+  an entry does not issue another API call. This is the existing admin view,
+  without new authorization behavior.
 - Header: CodeMentor-LLM at left; Workspace, Request Log, and Appearance at right.
   Navigation uses soft active backgrounds and a 180ms hover transition. At small
   widths it becomes a row of accessible icons. All header targets are 44px.
@@ -40,6 +45,9 @@ update the CSS appearance property in both documents in one browser task. The
 server persists that preference; revision acknowledgements prevent older reruns
 from reverting a newer selection. Color changes animate for 180ms and respect
 reduced motion. Tooltips use explicit theme-aware foreground/background colors.
+The header consumes widget state before rendering, without an extra rerun.
+Same-page clicks do nothing; rapid navigation changes are coalesced with one
+request in flight and the latest selection queued. This keeps the iframe alive.
 Inline code in answers has no background; fenced code remains formatted and
 wraps long lines without a fixed vertical height.
 Streaming Markdown updates are batched at 80ms rather than animated character
@@ -48,6 +56,17 @@ response area avoid horizontal jumps and automatic viewport movement. The
 loading message is replaced in place rather than inserting/removing a spinner
 above the answer. Interrupted streams retain the generated text and show an
 explicit error; they are not reported as successfully completed responses.
+Caret colors are explicit for both the light input and dark follow-up composer.
+
+Normal mode is the default. Detailed code raises only the maximum output length
+and can take longer. Continue response is a manual extra request, never an
+automatic loop. It appends to the current answer using the original question
+and a recent ending that fits the existing 2048-character prompt limit. Exact
+repeated boundary text is trimmed; a wholly repeated answer shows an error.
+The API does not report finish reasons, so the control is offered after any
+answer instead of claiming to reliably detect token exhaustion. Continuations
+have limited recent context and are not guaranteed to reproduce missing code
+correctly; generated code should still be reviewed and tested.
 Appearance, drafts, and the last completed response are session-local. Native
 Streamlit developer chrome is hidden; application navigation is in the header.
 
@@ -76,6 +95,7 @@ python frontend/tests/browser_check.py
 python frontend/tests/browser_polish.py
 # Against a slow local API fixture:
 python frontend/tests/browser_streaming.py
+python frontend/tests/browser_navigation.py
 ```
 
 Set `UI_URL` and `CHROME_PATH` if using another local port or Chrome installation.

@@ -18,7 +18,7 @@ def workspace() -> AppTest:
 
 def submit(app: AppTest, prompt: str) -> AppTest:
     app.text_area[0].input(prompt)
-    return app.button[0].click().run()
+    return next(button for button in app.button if button.label == "Send question").click().run()
 
 
 def test_initial_workspace_and_empty_validation():
@@ -51,7 +51,7 @@ def test_streaming_contract_and_response_survives_rerender():
     assert not app.exception
     assert app.session_state.answer == "Hello world"
     assert post.call_args.kwargs == {
-        "json": {"prompt": "Explain decorators", "max_new_tokens": 1024},
+        "json": {"prompt": "Explain decorators", "max_new_tokens": 512},
         "stream": True, "timeout": (30, 180),
     }
     app.session_state.appearance = "dark"
@@ -81,7 +81,7 @@ def test_logs_empty_and_http_error_states():
     assert get.call_args.args[0].endswith("/logs?limit=50")
     response.raise_for_status.side_effect = requests.HTTPError("503")
     with patch("requests.get", return_value=response):
-        app.run()
+        next(button for button in app.button if button.label == "Refresh logs").click().run()
     assert "couldn’t load" in app.error[0].value
 
 
@@ -136,7 +136,7 @@ def test_response_replaces_welcome_and_followup_replaces_previous_answer():
     assert "Let’s work it out" not in content
     assert "First answer" in content
     assert "Ask another coding question" in content
-    assert len(app.button) == 1
+    assert {button.label for button in app.button} == {"Send question", "Continue response"}
     response.iter_lines.return_value = ['data: {"token": "Second answer"}', "data: [DONE]"]
     with patch("requests.post", return_value=response):
         submit(app, "Second question")
@@ -183,3 +183,52 @@ def test_empty_completed_stream_is_not_reported_as_a_success():
     with patch("requests.post", return_value=response):
         submit(app, "A coding question")
     assert "empty answer" in app.error[0].value
+
+
+def test_detailed_mode_uses_1024_tokens():
+    response = MagicMock()
+    response.__enter__.return_value = response
+    response.iter_lines.return_value = ['data: {"token": "Detailed answer"}', "data: [DONE]"]
+    app = workspace()
+    app.radio(key="response_mode").set_value("Detailed code").run()
+    with patch("requests.post", return_value=response) as post:
+        submit(app, "Explain linked lists")
+    assert post.call_args.kwargs["json"]["max_new_tokens"] == 1024
+
+
+def test_continue_appends_without_repeating_exact_boundary_and_bounds_context():
+    response = MagicMock()
+    response.__enter__.return_value = response
+    original = "First part of a sufficiently long answer. " * 100
+    response.iter_lines.return_value = [f'data: {{"token": "{original}"}}', "data: [DONE]"]
+    app = workspace()
+    with patch("requests.post", return_value=response):
+        submit(app, "Explain linked lists")
+    overlap = original[-50:]
+    response.iter_lines.return_value = [f'data: {{"token": "{overlap}New continuation."}}', "data: [DONE]"]
+    with patch("requests.post", return_value=response) as post:
+        next(button for button in app.button if button.label == "Continue response").click().run()
+    assert not app.exception
+    assert app.session_state.answer == original + "New continuation."
+    payload = post.call_args.kwargs["json"]
+    assert len(payload["prompt"]) <= 2048
+    assert "Explain linked lists" in payload["prompt"]
+    assert payload["max_new_tokens"] == 512
+
+
+def test_history_selection_loads_one_request_without_fetching_again():
+    app = workspace()
+    app.session_state.page = "logs"
+    response = MagicMock()
+    response.json.return_value = {"total": 2, "logs": [
+        {"id": 2, "prompt": "Second question", "response": "Second answer", "success": False},
+        {"id": 1, "prompt": "First question", "response": "First answer", "success": True},
+    ]}
+    with patch("requests.get", return_value=response) as get:
+        app.run()
+        app.sidebar.radio[0].set_value(1).run()
+    assert get.call_count == 1
+    content = "\n".join(item.value for item in app.markdown)
+    assert "First answer" in content
+    assert "Second answer" not in content
+    assert "Success" in content

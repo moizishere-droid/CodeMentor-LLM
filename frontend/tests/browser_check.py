@@ -5,6 +5,7 @@ Optional developer dependency: playwright. Screenshots go to .ui-checks/.
 
 import json
 import os
+import re
 from pathlib import Path
 
 from playwright.sync_api import expect, sync_playwright
@@ -54,8 +55,17 @@ def main() -> None:
                 expect(page.locator('[data-testid="stException"]')).to_have_count(0)
                 expect(page.locator('[data-testid="stAlert"], .cm-log-header').first).to_be_visible(timeout=45000)
                 if os.getenv("UI_FIXTURE") == "1":
-                    expect(page.locator(".cm-status-success")).to_have_text("Success")
+                    request_two = page.get_by_text(re.compile(r"^Request 2 ·"))
+                    request_one = page.get_by_text(re.compile(r"^Request 1 ·"))
+                    request_box = request_two.bounding_box()
+                    if not request_box or request_box["x"] < 0:
+                        page.locator('[data-testid="collapsedControl"] button').click()
+                    request_two.click()
                     expect(page.locator(".cm-status-failed")).to_have_text("Failed")
+                    request_one.click()
+                    expect(page.locator(".cm-status-success")).to_have_text("Success")
+                    if width <= 768:
+                        page.locator('[data-testid="stSidebarCollapseButton"] button').click()
                     expect(page.locator('[data-testid="stDataFrame"]')).to_have_count(0)
                     expect(page.locator('[data-testid="stExpander"]')).to_have_count(0)
                     assert page.locator('pre').evaluate_all(

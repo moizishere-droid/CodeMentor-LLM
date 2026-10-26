@@ -20,7 +20,7 @@
 .cm-heading h1 { color: var(--cm-text); font-size: var(--cm-heading); font-weight: 600; letter-spacing: -.04em; line-height: 1.2; padding: var(--cm-space-3) 0; }
 .cm-heading p { color: var(--cm-muted); font-size: var(--cm-body); margin: 0 0 var(--cm-space-6); }
 [data-testid="stForm"] { width: 100%; max-width: 640px; margin: 0 auto; background: var(--cm-bg); border: 1px solid var(--cm-border); border-radius: var(--cm-radius-lg); padding: var(--cm-space-4); box-shadow: var(--cm-shadow); }
-[data-testid="stTextArea"] textarea { background: var(--cm-bg); color: var(--cm-text); border-radius: var(--cm-radius); font-family: var(--cm-font); font-size: var(--cm-body); resize: vertical; }
+[data-testid="stTextArea"] textarea { background: var(--cm-bg); color: var(--cm-text); caret-color: var(--cm-text); cursor: text; border-radius: var(--cm-radius); font-family: var(--cm-font); font-size: var(--cm-body); resize: vertical; }
 [data-testid="stTextArea"] textarea::placeholder { color: var(--cm-muted); }
 [data-testid="stTextArea"] [data-baseweb="textarea"] { background: var(--cm-bg); border-color: var(--cm-border); }
 [data-testid="stTextArea"] [data-baseweb="base-input"] { background: var(--cm-bg); }
@@ -70,6 +70,15 @@ button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px sol
 [data-testid="stForm"]:has(.cm-compact-composer) textarea { resize: vertical; padding: var(--cm-space-3) var(--cm-space-2); }
 [data-testid="stForm"]:has(.cm-compact-composer) [data-baseweb="textarea"] { height: 56px; min-height: 0; }
 [data-testid="stForm"]:has(.cm-compact-composer) textarea { height: 56px; min-height: 0; box-sizing: border-box; }
+[data-testid="stForm"]:has(.cm-compact-composer) textarea { caret-color: var(--cm-composer-text); }
+[data-testid="stRadio"] { max-width: 640px; margin: 0 auto; }
+[data-testid="stRadio"] label p { color: var(--cm-text); font-size: var(--cm-small); }
+[data-testid="stSidebar"] { color-scheme: var(--cm-appearance); background: var(--cm-surface); color: var(--cm-text); border-right: 1px solid var(--cm-border); }
+[data-testid="stSidebar"] :is(h2,h3,p) { color: var(--cm-text); }
+[data-testid="stSidebar"] [data-testid="stRadio"] label { width: 100%; padding: var(--cm-space-3); border-radius: var(--cm-radius); align-items: flex-start; }
+[data-testid="stSidebar"] [data-testid="stRadio"] label:hover { background: var(--cm-bg); }
+[data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) { background: var(--cm-accent-soft); }
+[data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) p { color: var(--cm-accent); }
 [data-testid="stForm"]:has(.cm-compact-composer) textarea::placeholder { color: var(--cm-composer-muted); }
 [data-testid="stForm"]:has(.cm-compact-composer) [data-testid="stFormSubmitButton"] button { background: var(--cm-composer-text); color: var(--cm-composer-bg); border-color: var(--cm-composer-text); }
 [data-testid="stDataFrame"] { border-radius: var(--cm-radius); overflow: hidden; }
