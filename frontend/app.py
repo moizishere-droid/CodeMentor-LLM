@@ -13,7 +13,7 @@ from ui import render_heading, render_shell
 
 load_dotenv()
 API_URL = os.getenv("API_URL", "http://localhost:8000")
-RESPONSE_BUDGETS = {"Normal": 512, "Detailed code": 1024}
+MAX_RESPONSE_TOKENS = 512
 STREAM_RENDER_INTERVAL = 0.08
 
 st.set_page_config(
@@ -24,11 +24,11 @@ st.set_page_config(
 )
 
 
-def stream_response(prompt: str, max_new_tokens: int = 512) -> Iterator[str]:
+def stream_response(prompt: str) -> Iterator[str]:
     """Consume the existing server-sent token stream without altering its payload."""
     with requests.post(
         f"{API_URL}/generate/stream",
-        json={"prompt": prompt, "max_new_tokens": max_new_tokens},
+        json={"prompt": prompt, "max_new_tokens": MAX_RESPONSE_TOKENS},
         stream=True,
         timeout=(30, 180),
     ) as response:
@@ -47,52 +47,22 @@ def stream_response(prompt: str, max_new_tokens: int = 512) -> Iterator[str]:
         raise RuntimeError("The response connection ended early. Please try your question again.")
 
 
-def continuation_prompt(question: str, answer: str) -> str:
-    """Supply the original question and recent ending within the API's 2048 chars."""
-    instructions = (
-        "Continue the unfinished assistant answer below. Output only the missing continuation, "
-        "including any needed leading whitespace or newlines. Do not repeat existing text. "
-        "If the answer ends inside a code block, continue it without opening another fence.\n\n"
-    )
-    context = f"Original coding question:\n{question[:600]}\n\nAnswer ending:\n"
-    ending_label = "\n\nContinue exactly after this ending:\n"
-    remaining = 2048 - len(instructions) - len(context) - len(ending_label)
-    return instructions + context + answer[-remaining:] + ending_label
-
-
-def append_continuation(prefix: str, addition: str) -> str:
-    """Remove only exact repeated boundary text; otherwise retain model output."""
-    for length in range(min(len(prefix), len(addition), 512), 15, -1):
-        if prefix.endswith(addition[:length]):
-            return prefix + addition[length:]
-    return prefix + addition
-
-
-def render_response_stream(prompt: str, max_new_tokens: int, prefix: str = "") -> str:
+def render_response_stream(prompt: str) -> str:
     """Batch Markdown updates without the per-character typewriter cursor."""
     output = st.empty()
-    if prefix:
-        output.markdown(prefix)
-    else:
-        output.markdown('<p class="cm-waiting" role="status">Working on your question…</p>', unsafe_allow_html=True)
+    output.markdown('<p class="cm-waiting" role="status">Working on your question…</p>', unsafe_allow_html=True)
     chunks: list[str] = []
     last_render = 0.0
-    for chunk in stream_response(prompt, max_new_tokens):
+    for chunk in stream_response(prompt):
         chunks.append(chunk)
-        st.session_state.answer = append_continuation(prefix, "".join(chunks))
+        st.session_state.answer = "".join(chunks)
         now = monotonic()
         if now - last_render >= STREAM_RENDER_INTERVAL:
             output.markdown(st.session_state.answer)
             last_render = now
-    addition = "".join(chunks)
-    if not addition.strip():
+    answer = "".join(chunks)
+    if not answer.strip():
         raise RuntimeError("The service returned an empty answer. Please try again.")
-    if prefix and addition.strip() == prefix.strip():
-        st.session_state.answer = prefix
-        raise RuntimeError("The model repeated the previous answer. Try a more specific follow-up question.")
-    answer = append_continuation(prefix, addition)
-    if prefix and answer == prefix:
-        raise RuntimeError("No new content was returned. Try a more specific follow-up question.")
     output.markdown(answer)
     return answer
 
@@ -116,8 +86,6 @@ def render_workspace() -> None:
     intro = st.empty()
     response_area = st.empty()
     feedback_area = st.empty()
-    continuation_area = st.empty()
-    next_question = st.empty()
     if not has_asked:
         with intro.container():
             render_heading(
@@ -130,26 +98,6 @@ def render_workspace() -> None:
             st.markdown(st.session_state.answer)
     if "response_error" in st.session_state:
         feedback_area.error(st.session_state.response_error)
-    continuation_rendered = bool(st.session_state.get("answer"))
-    continue_requested = False
-    if continuation_rendered:
-        with continuation_area.container():
-            continue_requested = st.button(
-                "Continue response", key="continue_response",
-                help="Ask for the remaining answer if it ended early. This sends another request.",
-            )
-    if has_asked:
-        next_question.markdown(
-            '<p class="cm-next-question">Ask another coding question</p>', unsafe_allow_html=True
-        )
-
-    selected_mode = st.radio(
-        "Response length", list(RESPONSE_BUDGETS), horizontal=True,
-        label_visibility="collapsed", key="response_mode",
-        help="Normal uses up to 512 tokens. Detailed code allows up to 1024 tokens and may take longer.",
-    )
-    token_budget = RESPONSE_BUDGETS[selected_mode]
-
     with st.form("question", clear_on_submit=False):
         if has_asked:
             st.markdown('<span class="cm-compact-composer" aria-hidden="true"></span>', unsafe_allow_html=True)
@@ -190,27 +138,18 @@ def render_workspace() -> None:
 
     if submitted and not question.strip():
         st.warning("Enter a coding question before sending.")
-    elif submitted or continue_requested:
-        prefix = str(st.session_state.get("answer", "")) if continue_requested else ""
-        if continue_requested:
-            question = continuation_prompt(str(st.session_state.get("last_question", "")), prefix)
-        else:
-            st.session_state.last_question = question
+    elif submitted:
         intro.empty()
         suggestions_area.empty()
         response_area.empty()
         feedback_area.empty()
-        next_question.markdown(
-            '<p class="cm-next-question">Ask another coding question</p>', unsafe_allow_html=True
-        )
         st.session_state.has_asked = True
         st.session_state.draft = ""
-        if not continue_requested:
-            st.session_state.pop("answer", None)
+        st.session_state.pop("answer", None)
         st.session_state.pop("response_error", None)
         try:
             with response_area.container(), st.chat_message("assistant"):
-                st.session_state.answer = render_response_stream(question, token_budget, prefix)
+                st.session_state.answer = render_response_stream(question)
         except requests.exceptions.ConnectionError:
             st.session_state.response_error = "The coding service is unavailable. Please try again shortly."
         except requests.exceptions.Timeout:
@@ -219,12 +158,6 @@ def render_workspace() -> None:
             st.session_state.response_error = f"We couldn’t complete your request: {error}"
         if "response_error" in st.session_state:
             feedback_area.error(st.session_state.response_error)
-        if not continuation_rendered and st.session_state.get("answer"):
-            with continuation_area.container():
-                st.button(
-                    "Continue response", key="continue_response",
-                    help="Ask for the remaining answer if it ended early. This sends another request.",
-                )
 
     st.markdown(
         '<p class="cm-footer">AI can make mistakes. Review and test generated code.</p>',

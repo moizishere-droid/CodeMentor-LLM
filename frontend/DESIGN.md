@@ -2,19 +2,22 @@
 
 The existing Streamlit 1.35 application remains the frontend. Backend routes,
 request fields, model weights, and database schemas are unchanged. The frontend
-uses 512 response tokens in Normal mode and up to 1024 when the user selects
-Detailed code. Modal's serving
-cap is aligned to that same maximum rather than silently reducing it to 512.
-Deploying this cap correction requires redeploying `backend/src/modal_app.py` to
-Modal as well as updating the frontend. A Space-only push cannot update Modal.
-1024 remains a maximum, so arbitrarily long answers can still reach the limit.
+requests at most 512 response tokens without a length selector, as requested.
+The model can stop earlier on its normal end-of-answer token; the cap does not
+force a short answer to use 512 tokens. There is one generation request, with no
+classifier call or automatic continuation loop. Longer generated outputs still
+take more time, so this is not a guarantee of constant latency. The existing
+API and Modal endpoint can accept up to 1024, but this frontend always requests
+512. No serving or warm-container configuration change is required for this UI
+update. Answers longer than the selected 512-token budget can be cut off.
 
 ## Screens
 
 - Workspace: welcome copy and suggestions appear initially. Sending a question
   replaces this welcome section with the streamed answer and puts a cleared
   follow-up composer below it. A subsequent question replaces the last answer.
-  The follow-up composer is a wider, compact dark bar in both themes. Native
+  The follow-up composer is a wider, slim, theme-aware input bar with just a
+  placeholder and send button; there is no extra label or response-length control. Native
   response headings have explicit theme-aware foregrounds and a stronger neutral
   card background; text-selection colors stay readable in both appearances.
 - Request Log: the left sidebar lists Request 1, Request 2, and short prompt
@@ -56,17 +59,11 @@ response area avoid horizontal jumps and automatic viewport movement. The
 loading message is replaced in place rather than inserting/removing a spinner
 above the answer. Interrupted streams retain the generated text and show an
 explicit error; they are not reported as successfully completed responses.
-Caret colors are explicit for both the light input and dark follow-up composer.
-
-Normal mode is the default. Detailed code raises only the maximum output length
-and can take longer. Continue response is a manual extra request, never an
-automatic loop. It appends to the current answer using the original question
-and a recent ending that fits the existing 2048-character prompt limit. Exact
-repeated boundary text is trimmed; a wholly repeated answer shows an error.
-The API does not report finish reasons, so the control is offered after any
-answer instead of claiming to reliably detect token exhaustion. Continuations
-have limited recent context and are not guaranteed to reproduce missing code
-correctly; generated code should still be reviewed and tested.
+Caret colors are explicit in both appearances. Continue response and the
+Normal/Detailed selector have been removed. Completed answers are shown exactly
+as streamed; output length is not guessed from prompt keywords or truncated by
+the frontend. The fixed 512-token request budget can still cut off long model
+answers. The API does not report a reliable finish reason.
 Appearance, drafts, and the last completed response are session-local. Native
 Streamlit developer chrome is hidden; application navigation is in the header.
 

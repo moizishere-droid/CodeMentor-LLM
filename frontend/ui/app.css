@@ -47,7 +47,6 @@ button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px sol
 [data-testid="stHorizontalBlock"] [data-testid="stButton"] button { width: 100%; text-align: left; padding: var(--cm-space-4); }
 [data-testid="stHorizontalBlock"] [data-testid="stButton"] button p { font-size: var(--cm-small); }
 .cm-footer { text-align: center; margin: var(--cm-space-8) 0; color: var(--cm-muted); font-size: var(--cm-small); }
-.cm-next-question { max-width: 760px; margin: var(--cm-space-6) auto 0; color: var(--cm-muted); font-size: var(--cm-small); }
 .cm-model { display: inline-block; color: var(--cm-muted); font-size: var(--cm-small); }
 .cm-model::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--cm-accent); margin-right: var(--cm-space-2); }
 [data-testid="stMarkdownContainer"] { color: var(--cm-text); overflow-wrap: anywhere; }
@@ -61,16 +60,16 @@ button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px sol
 [data-testid="stChatMessage"] { background: var(--cm-response-bg); border-radius: var(--cm-radius-lg); width: 100%; max-width: 640px; min-height: 128px; margin: 0 auto; overflow-anchor: none; }
 [data-testid="stChatMessage"] :is(h1,h2,h3,h4,h5,h6) { color: var(--cm-text); background: transparent; }
 .cm-waiting { color: var(--cm-muted); min-height: 44px; margin: 0; }
-[data-testid="stForm"]:has(.cm-compact-composer) { max-width: 760px; background: var(--cm-composer-bg); border-color: var(--cm-composer-border); padding: var(--cm-space-2) var(--cm-space-3); }
+[data-testid="stForm"]:has(.cm-compact-composer) { max-width: 760px; background: var(--cm-bg); border-color: var(--cm-border); padding: var(--cm-space-1) var(--cm-space-2); box-shadow: none; }
 [data-testid="stForm"] [data-testid="element-container"]:has(.cm-compact-composer) { display: none; }
 [data-testid="stForm"]:has(.cm-compact-composer) [data-testid="stVerticalBlock"] { gap: 0; }
 [data-testid="stForm"]:has(.cm-compact-composer) [data-baseweb="textarea"],
 [data-testid="stForm"]:has(.cm-compact-composer) [data-baseweb="base-input"],
-[data-testid="stForm"]:has(.cm-compact-composer) textarea { background: var(--cm-composer-bg); border-color: transparent; color: var(--cm-composer-text); }
-[data-testid="stForm"]:has(.cm-compact-composer) textarea { resize: vertical; padding: var(--cm-space-3) var(--cm-space-2); }
-[data-testid="stForm"]:has(.cm-compact-composer) [data-baseweb="textarea"] { height: 56px; min-height: 0; }
-[data-testid="stForm"]:has(.cm-compact-composer) textarea { height: 56px; min-height: 0; box-sizing: border-box; }
-[data-testid="stForm"]:has(.cm-compact-composer) textarea { caret-color: var(--cm-composer-text); }
+[data-testid="stForm"]:has(.cm-compact-composer) textarea { background: var(--cm-bg); border-color: transparent; color: var(--cm-text); }
+[data-testid="stForm"]:has(.cm-compact-composer) textarea { resize: vertical; padding: var(--cm-space-2); }
+[data-testid="stForm"]:has(.cm-compact-composer) [data-baseweb="textarea"] { height: 40px; min-height: 0; }
+[data-testid="stForm"]:has(.cm-compact-composer) textarea { height: 40px; min-height: 0; box-sizing: border-box; caret-color: var(--cm-text); }
+[data-testid="stForm"]:has(.cm-compact-composer) [data-testid="stHorizontalBlock"] { max-width: none; }
 [data-testid="stRadio"] { max-width: 640px; margin: 0 auto; }
 [data-testid="stRadio"] label p { color: var(--cm-text); font-size: var(--cm-small); }
 [data-testid="stSidebar"] { color-scheme: var(--cm-appearance); background: var(--cm-surface); color: var(--cm-text); border-right: 1px solid var(--cm-border); }
@@ -79,8 +78,8 @@ button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px sol
 [data-testid="stSidebar"] [data-testid="stRadio"] label:hover { background: var(--cm-bg); }
 [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) { background: var(--cm-accent-soft); }
 [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) p { color: var(--cm-accent); }
-[data-testid="stForm"]:has(.cm-compact-composer) textarea::placeholder { color: var(--cm-composer-muted); }
-[data-testid="stForm"]:has(.cm-compact-composer) [data-testid="stFormSubmitButton"] button { background: var(--cm-composer-text); color: var(--cm-composer-bg); border-color: var(--cm-composer-text); }
+[data-testid="stForm"]:has(.cm-compact-composer) textarea::placeholder { color: var(--cm-muted); opacity: 1; }
+[data-testid="stForm"]:has(.cm-compact-composer) [data-testid="stFormSubmitButton"] button { width: 40px; height: 40px; min-height: 40px; background: var(--cm-accent); color: var(--cm-bg); border-color: var(--cm-accent); }
 [data-testid="stDataFrame"] { border-radius: var(--cm-radius); overflow: hidden; }
 [data-testid="stVerticalBlockBorderWrapper"]:has(> div > [data-testid="stVerticalBlock"] > [data-testid="element-container"] .cm-log-header) {
   width: 100%; margin: 0 auto;

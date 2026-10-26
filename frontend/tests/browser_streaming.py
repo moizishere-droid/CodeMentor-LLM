@@ -46,11 +46,11 @@ def main() -> None:
                 heading = page.locator('[data-testid="stChatMessage"] h1')
                 expect(heading).to_have_css("color", "rgb(32, 36, 38)" if appearance == "light" else "rgb(241, 243, 242)")
                 form = page.locator('[data-testid="stForm"]')
-                expect(form).to_have_css("background-color", "rgb(32, 36, 38)")
+                expect(form).to_have_css("background-color", "rgb(255, 255, 255)" if appearance == "light" else "rgb(20, 21, 22)")
                 box = form.bounding_box()
-                assert box and box["height"] <= 110, box
+                assert box and box["height"] <= 56, box
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
-                print(width, appearance, "stable streaming; compact dark composer; readable heading")
+                print(width, appearance, "stable streaming; slim composer; readable heading")
                 page.close()
         browser.close()
 

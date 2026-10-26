@@ -1,4 +1,4 @@
-"""Stress header click bursts and verify history, budgets, continuation, caret."""
+"""Stress header click bursts and verify the simplified composer and caret."""
 
 import os
 
@@ -55,18 +55,16 @@ def main() -> None:
             textarea = page.get_by_role("textbox", name="Your coding question")
             textarea.focus()
             expect(textarea).to_have_css("caret-color", "rgb(32, 36, 38)")
-            page.get_by_text("Detailed code", exact=True).click()
             textarea.fill("Write a complete function.")
             page.get_by_role("button", name="Send question").click()
             expect(page.get_by_text("End of fixture response.", exact=True)).to_be_attached(timeout=15000)
-            expect(textarea).to_have_css("caret-color", "rgb(241, 243, 242)")
-            page.get_by_role("button", name="Continue response", exact=True).click()
-            expect(page.get_by_text("End of continuation.", exact=True)).to_be_attached(timeout=15000)
+            expect(textarea).to_have_css("caret-color", "rgb(32, 36, 38)")
             expect(page.locator('[data-testid="stChatMessage"]')).to_have_count(1)
-            expect(page.get_by_role("radio", name="Detailed code", exact=True)).to_be_checked()
+            expect(page.get_by_role("button", name="Continue response", exact=True)).to_have_count(0)
+            expect(page.get_by_role("radiogroup", name="Response length")).to_have_count(0)
             expect(header.locator("nav")).to_be_visible()
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
-            print(width, "rapid navigation, persistent header, response mode, continuation and caret passed")
+            print(width, "rapid navigation, persistent header, simplified composer and caret passed")
             page.close()
         browser.close()
 

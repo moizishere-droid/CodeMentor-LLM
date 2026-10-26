@@ -135,8 +135,8 @@ def test_response_replaces_welcome_and_followup_replaces_previous_answer():
     content = "\n".join(item.value for item in app.markdown)
     assert "Let’s work it out" not in content
     assert "First answer" in content
-    assert "Ask another coding question" in content
-    assert {button.label for button in app.button} == {"Send question", "Continue response"}
+    assert app.text_area[0].proto.placeholder == "Ask another coding question…"
+    assert {button.label for button in app.button} == {"Send question"}
     response.iter_lines.return_value = ['data: {"token": "Second answer"}', "data: [DONE]"]
     with patch("requests.post", return_value=response):
         submit(app, "Second question")
@@ -185,35 +185,19 @@ def test_empty_completed_stream_is_not_reported_as_a_success():
     assert "empty answer" in app.error[0].value
 
 
-def test_detailed_mode_uses_1024_tokens():
+@pytest.mark.parametrize("answer", ["Brief answer.", "A detailed explanation. " * 100])
+def test_short_and_long_answers_use_one_request_and_no_length_controls(answer):
     response = MagicMock()
     response.__enter__.return_value = response
-    response.iter_lines.return_value = ['data: {"token": "Detailed answer"}', "data: [DONE]"]
+    response.iter_lines.return_value = [f'data: {{"token": "{answer}"}}', "data: [DONE]"]
     app = workspace()
-    app.radio(key="response_mode").set_value("Detailed code").run()
     with patch("requests.post", return_value=response) as post:
         submit(app, "Explain linked lists")
-    assert post.call_args.kwargs["json"]["max_new_tokens"] == 1024
-
-
-def test_continue_appends_without_repeating_exact_boundary_and_bounds_context():
-    response = MagicMock()
-    response.__enter__.return_value = response
-    original = "First part of a sufficiently long answer. " * 100
-    response.iter_lines.return_value = [f'data: {{"token": "{original}"}}', "data: [DONE]"]
-    app = workspace()
-    with patch("requests.post", return_value=response):
-        submit(app, "Explain linked lists")
-    overlap = original[-50:]
-    response.iter_lines.return_value = [f'data: {{"token": "{overlap}New continuation."}}', "data: [DONE]"]
-    with patch("requests.post", return_value=response) as post:
-        next(button for button in app.button if button.label == "Continue response").click().run()
-    assert not app.exception
-    assert app.session_state.answer == original + "New continuation."
-    payload = post.call_args.kwargs["json"]
-    assert len(payload["prompt"]) <= 2048
-    assert "Explain linked lists" in payload["prompt"]
-    assert payload["max_new_tokens"] == 512
+    assert post.call_args.kwargs["json"]["max_new_tokens"] == 512
+    assert post.call_count == 1
+    assert app.session_state.answer == answer
+    assert not app.radio
+    assert {button.label for button in app.button} == {"Send question"}
 
 
 def test_history_selection_loads_one_request_without_fetching_again():
