@@ -14,8 +14,10 @@
 }
 .block-container { max-width: 1080px; padding: var(--cm-space-8) var(--cm-space-6); }
 [data-testid="stVerticalBlock"] { gap: var(--cm-space-4); }
+[data-testid="element-container"]:has(> [data-testid="stMarkdown"] > [data-testid="stMarkdownContainer"] > style:only-child) { display: none; }
 .cm-heading { max-width: 640px; margin: var(--cm-space-8) auto 0; }
-.cm-heading-wide { max-width: none; }
+/* Reclaim the header iframe's reserved tooltip space above the log heading. */
+.cm-heading.cm-heading-wide { max-width: none; margin-top: calc(-1 * var(--cm-space-8)); }
 .cm-eyebrow { color: var(--cm-accent); font-size: var(--cm-small); letter-spacing: .12em; font-weight: 600; }
 .cm-heading h1 { color: var(--cm-text); font-size: var(--cm-heading); font-weight: 600; letter-spacing: -.04em; line-height: 1.2; padding: var(--cm-space-3) 0; }
 .cm-heading p { color: var(--cm-muted); font-size: var(--cm-body); margin: 0 0 var(--cm-space-6); }
