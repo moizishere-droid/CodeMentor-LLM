@@ -1,5 +1,8 @@
 """CodeMentor-LLM's Streamlit workspace; API contracts are unchanged."""
 
+from datetime import datetime
+import base64
+from pathlib import Path
 import json
 import os
 from collections.abc import Iterator
@@ -38,49 +41,114 @@ def set_account_mode(mode: str) -> None:
     st.session_state.account_mode = mode
 
 
+LOGIN_INTRO = """
+<style>.cm-login-intro { --cm-feature-reference: url(data:image/jpeg;base64,ARTWORK_DATA); }</style>
+<div class="cm-login-intro">
+  <span class="cm-landing-eyebrow">YOUR CODING WORKSPACE</span>
+  <h1>Welcome back to<br>Code Mentor LLM</h1>
+  <p class="cm-landing-description">Log in to continue your coding journey.<br>Save your progress, access your workspaces,<br>and pick up right where you left off.</p>
+  <div class="cm-landing-features">
+    <div><span class="cm-feature-icon">&lt;/&gt;</span><section><h3>Build and learn</h3><p>Work on real projects with AI support.</p></section></div>
+    <div><span class="cm-feature-icon">▤</span><section><h3>Save your progress</h3><p>Keep your conversations and code safe.</p></section></div>
+    <div><span class="cm-feature-icon">ϟ</span><section><h3>Grow your skills</h3><p>Get help, feedback, and new perspectives.</p></section></div>
+  </div>
+  <div class="cm-reference-art" role="img" aria-label="Coding workspace illustration" style="background-image:url(data:image/jpeg;base64,ILLUSTRATION_DATA)"></div>
+</div>
+"""
+
+
+@st.dialog("Account notification", width="small")
+def show_account_message(message: str, *, error: bool = True) -> None:
+    """Keep notifications outside the fitted account page layout."""
+    if error:
+        st.error(message)
+    else:
+        st.info(message)
+    if st.button("OK", key="dismiss_account_message", use_container_width=True):
+        st.rerun()
+
+
 def render_account() -> None:
     st.markdown('<span class="cm-auth-page" aria-hidden="true"></span>', unsafe_allow_html=True)
-    render_heading("YOUR CODING WORKSPACE", "Welcome to CodeMentor", "Log in or create an account to save and revisit your responses.")
     mode = st.session_state.get("account_mode", "Log in")
-    with st.form("account"):
-        st.markdown('<span class="cm-auth-form"></span>', unsafe_allow_html=True)
-        username = st.text_input("Username", max_chars=80)
-        password = st.text_input("Password", type="password", max_chars=128)
-        confirm = st.text_input("Confirm password", type="password", max_chars=128) if mode == "Sign up" else password
-        submitted = st.form_submit_button(mode)
-    with st.container():
-        st.markdown('<span class="cm-auth-switch" aria-hidden="true"></span>', unsafe_allow_html=True)
-        login, signup = st.columns(2)
-        login.button("Log in", key="account_login", on_click=set_account_mode,
-                     args=("Log in",), type="primary" if mode == "Log in" else "secondary",
-                     use_container_width=True)
-        signup.button("Sign up", key="account_signup", on_click=set_account_mode,
-                      args=("Sign up",), type="primary" if mode == "Sign up" else "secondary",
-                      use_container_width=True)
+    st.markdown('<span class="cm-login-landing" aria-hidden="true"></span>', unsafe_allow_html=True)
+    account_key = "signup" if mode == "Sign up" else "login"
+    alternative = "Sign up" if mode == "Log in" else "Log in"
+    brand, action = st.columns([6, 2])
+    with brand:
+        st.markdown('<div class="cm-landing-brand"><span>&lt;/&gt;</span> Code Mentor LLM</div>', unsafe_allow_html=True)
+    with action:
+        st.markdown('<span class="cm-top-action"></span>', unsafe_allow_html=True)
+        st.caption("New to Code Mentor LLM?" if mode == "Log in" else "Already have an account?")
+        st.button(alternative, key="landing_signup", on_click=set_account_mode, args=(alternative,), use_container_width=True)
+    introduction, account_column = st.columns([1.08, 1], gap="large")
+    with introduction:
+        artwork = base64.b64encode((Path(__file__).parent / "ui/assets/login-reference.jpg").read_bytes()).decode("ascii")
+        intro = LOGIN_INTRO
+        if mode == "Sign up":
+            intro = intro.replace("Welcome back to<br>Code Mentor LLM", "Start your journey<br>with Code Mentor LLM").replace(
+                "Log in to continue your coding journey.<br>Save your progress, access your workspaces,<br>and pick up right where you left off.",
+                "Create an account to save your progress,<br>access your workspaces, and pick up right<br>where you left off.")
+        illustration = artwork if mode == "Log in" else base64.b64encode((Path(__file__).parent / "ui/assets/signup-reference.jpg").read_bytes()).decode("ascii")
+        st.markdown(intro.replace("ARTWORK_DATA", artwork).replace("ILLUSTRATION_DATA", illustration), unsafe_allow_html=True)
+    with account_column:
+        with st.container():
+            st.markdown('<span class="cm-account-card" aria-hidden="true"></span>', unsafe_allow_html=True)
+            title = "Welcome back to Code Mentor LLM" if mode == "Log in" else "Create your Code Mentor LLM account"
+            description = "Log in to your account to save and revisit your responses." if mode == "Log in" else "Start your coding journey and keep your responses in one place."
+            subtitle = f"<p>{description}</p>" if mode == "Log in" else ""
+            st.markdown(f'<div class="cm-login-title"><h2>{title}</h2>{subtitle}</div>', unsafe_allow_html=True)
+            with st.form(f"account_{account_key}", clear_on_submit=False):
+                st.markdown('<span class="cm-auth-form"></span>', unsafe_allow_html=True)
+                username = st.text_input("Username", key=f"{account_key}_username", autocomplete="username", max_chars=80, placeholder="Enter your username" if mode == "Log in" else "Choose a username")
+                email = st.text_input("Email", key="signup_email", autocomplete="email", max_chars=254, placeholder="Enter your email address") if mode == "Sign up" else ""
+                password = st.text_input("Password", key=f"{account_key}_password", autocomplete="new-password" if mode == "Sign up" else "current-password", type="password", max_chars=128, placeholder="Enter your password" if mode == "Log in" else "Create a password")
+                confirm = st.text_input("Confirm password", key="signup_confirm_password", autocomplete="new-password", type="password", max_chars=128, placeholder="Confirm your password") if mode == "Sign up" else password
+                if mode == "Log in":
+                    remember_column, recovery_column = st.columns([1, 1])
+                    with remember_column:
+                        st.checkbox("Remember me", value=True, key="remember_account")
+                    with recovery_column:
+                        recovery = st.form_submit_button("Forgot password?")
+                else:
+                    recovery = False
+                    st.markdown('<span class="cm-signup-fields"></span>', unsafe_allow_html=True)
+                    agreed = st.checkbox("I agree to the Terms of Service and Privacy Policy.", key="account_agreed")
+                submitted = st.form_submit_button(mode + "  →")
+            st.markdown('<div class="cm-login-divider"><span>OR</span></div>', unsafe_allow_html=True)
+            st.markdown('<span class="cm-account-footer"></span>', unsafe_allow_html=True)
+            st.caption("Don’t have an account?" if mode == "Log in" else "Already have an account?")
+            st.button(alternative + " →", key="account_switch", on_click=set_account_mode,
+                      args=(alternative,), use_container_width=True)
+    if recovery:
+        show_account_message("Password recovery is not configured yet. Please contact the app owner for help accessing your account.", error=False)
     if submitted:
-        if len(username.strip()) < 3 or len(password) < 8:
-            st.error("Use a username of at least 3 characters and a password of at least 8 characters.")
+        if mode == "Sign up" and (not email.strip() or "@" not in email or "." not in email.rsplit("@", 1)[-1]):
+            show_account_message("Enter a valid email address.")
+        elif mode == "Sign up" and not agreed:
+            show_account_message("Please agree to the Terms of Service and Privacy Policy to continue.")
+        elif len(username.strip()) < 3 or len(password) < 8:
+            show_account_message("Use a username of at least 3 characters and a password of at least 8 characters.")
         elif password != confirm:
-            st.error("The passwords do not match.")
+            show_account_message("The passwords do not match.")
         else:
             try:
                 endpoint = "register" if mode == "Sign up" else "login"
-                response = requests.post(f"{API_URL}/auth/{endpoint}", json={"username": username, "password": password}, timeout=30)
+                payload = {"username": username, "password": password}
+                if mode == "Sign up":
+                    payload.update(email=email.strip(), terms_accepted=agreed)
+                response = requests.post(f"{API_URL}/auth/{endpoint}", json=payload, timeout=30)
                 if not response.ok:
                     detail = response.json().get("detail", "Unable to sign in")
-                    st.error(detail if isinstance(detail, str) else "Check your username and password.")
+                    show_account_message(detail if isinstance(detail, str) else "Check your username and password.")
                     return
                 account = response.json()
                 st.session_state.clear()
                 st.session_state.auth_token = account["token"]
                 st.session_state.username = account["username"]
-                # Restore the last saved answer immediately on login.
-                history = requests.get(f"{API_URL}/logs?limit=1", headers=auth_headers(), timeout=30)
-                if history.ok and history.json()["logs"]:
-                    st.session_state.answer = history.json()["logs"][0]["response"]
                 st.rerun()
             except (requests.RequestException, ValueError):
-                st.error("The account service is unavailable. Please try again.")
+                show_account_message("The account service is unavailable. Please try again.")
 
 
 def stream_response(prompt: str) -> Iterator[str]:
@@ -147,8 +215,16 @@ def render_workspace() -> None:
     intro = st.empty()
     response_area = st.empty()
     feedback_area = st.empty()
+    generation_indicator = st.empty()
+    scenery = base64.b64encode((Path(__file__).parent / "ui/assets/workspace-reference.jpg").read_bytes()).decode("ascii")
+    response_class = " cm-workspace-response" if has_asked else ""
+    st.markdown(f'<style>.block-container:has(.cm-workspace-page){{--cm-workspace-reference:url(data:image/jpeg;base64,{scenery});}}</style>'
+                f'<span class="cm-workspace-page{response_class}" aria-hidden="true"></span>'
+                f'<div class="cm-workspace-art cm-workspace-art-left" style="background-image:url(data:image/jpeg;base64,{scenery})" aria-hidden="true"></div>'
+                f'<div class="cm-workspace-art cm-workspace-art-right" style="background-image:url(data:image/jpeg;base64,{scenery})" aria-hidden="true"></div>', unsafe_allow_html=True)
     if not has_asked:
         with intro.container():
+            st.markdown('<span class="cm-workspace-home" aria-hidden="true"></span>', unsafe_allow_html=True)
             render_heading(
                 "A CLEARER WAY TO CODE",
                 "Let’s work it out, together.",
@@ -171,7 +247,7 @@ def render_workspace() -> None:
         else:
             prompt = st.text_area(
                 "Your coding question", placeholder="What are you working on?",
-                height=120, key="prompt", label_visibility="collapsed",
+                height=100, key="prompt", label_visibility="collapsed",
             )
             model, send = st.columns([6, 1])
             with model:
@@ -190,16 +266,19 @@ def render_workspace() -> None:
     if not has_asked:
         with suggestions_area.container():
             suggestions = (
-                ("Find the bug", "Help me debug this Python function."),
-                ("Understand a concept", "Explain Python list comprehensions with a simple example."),
-                ("Build something", "Write a Python function to reverse a string."),
+                ("**Find the bug**\n\nPaste your code and get help finding issues.", "Help me debug this Python function."),
+                ("**Understand a concept**\n\nGet clear explanations with examples.", "Explain Python list comprehensions with a simple example."),
+                ("**Build something**\n\nTurn your idea into working code step by step.", "Write a Python function to reverse a string."),
             )
             for column, (label, suggestion) in zip(st.columns(3), suggestions):
                 column.button(label, on_click=set_prompt, args=(suggestion,), use_container_width=True)
+    else:
+        suggestions_area.empty()
 
     if submitted and not question.strip():
         st.warning("Enter a coding question before sending.")
     elif submitted:
+        generation_indicator.markdown('<span class="cm-generating" aria-hidden="true"></span>', unsafe_allow_html=True)
         intro.empty()
         suggestions_area.empty()
         response_area.empty()
@@ -217,13 +296,16 @@ def render_workspace() -> None:
             st.session_state.response_error = "The request took too long. Please try again."
         except (requests.RequestException, RuntimeError, ValueError, KeyError, TypeError) as error:
             st.session_state.response_error = f"We couldn’t complete your request: {error}"
+        finally:
+            generation_indicator.empty()
         if "response_error" in st.session_state:
             feedback_area.error(st.session_state.response_error)
 
-    st.markdown(
-        '<p class="cm-footer">AI can make mistakes. Review and test generated code.</p>',
-        unsafe_allow_html=True,
-    )
+    if has_asked or submitted:
+        st.markdown(
+            '<p class="cm-footer">AI can make mistakes. Review and test generated code.</p>',
+            unsafe_allow_html=True,
+        )
 
 
 def render_log_record(record: dict[str, object]) -> None:
@@ -245,48 +327,101 @@ def render_log_record(record: dict[str, object]) -> None:
         st.markdown(str(record["response"]))
 
 
+def start_new_request() -> None:
+    for key in ("answer", "has_asked", "response_error", "active_request", "prompt", "draft"):
+        st.session_state.pop(key, None)
+    st.session_state.page = "workspace"
+
+
+def choose_log_filter(period: str) -> None:
+    st.session_state.log_period = period
+    st.session_state.log_page = 1
+    st.session_state.pop("active_request", None)
+
+
+def change_log_page(delta: int) -> None:
+    st.session_state.log_page = max(1, st.session_state.get("log_page", 1) + delta)
+
+
+def reset_log_page() -> None:
+    st.session_state.log_page = 1
+
+
 def render_logs() -> None:
-    render_heading(
-        "WORKSPACE ACTIVITY", "Request log", "Review your questions, responses, and request status.",
-        wide=True,
-    )
-    st.caption("Your saved responses · 50 per page")
-    page_number = st.number_input("History page", min_value=1, value=1, step=1)
-    refresh = st.button("Refresh logs")
+    st.markdown('<span class="cm-log-page" aria-hidden="true"></span>', unsafe_allow_html=True)
+    filters, history = st.columns([1, 4.5], gap="large")
+    with history:
+        heading, search_column = st.columns([2.4, 1.5])
+        with heading:
+            render_heading("WORKSPACE ACTIVITY", "Request log", "Review your questions, responses, and request status.", wide=True)
+        with search_column:
+            search = st.text_input("Search requests", placeholder="Search your requests…", label_visibility="collapsed", key="log_search", on_change=reset_log_page)
+        st.caption("Your saved responses · 50 per page")
+    period = st.session_state.get("log_period", "all")
+    page_number = st.session_state.get("log_page", 1)
+    signature = (search, period, page_number)
     try:
-        if refresh or "request_log_data" not in st.session_state or st.session_state.get("history_page") != page_number:
-            with st.spinner("Loading requests…"):
-                response = requests.get(f"{API_URL}/logs", params={"limit": 50, "offset": (page_number - 1) * 50}, headers=auth_headers(), timeout=30)
-                st.session_state.history_page = page_number
-                require_session(response)
-                response.raise_for_status()
-                st.session_state.request_log_data = response.json()
+        if signature != st.session_state.get("log_signature") or "request_log_data" not in st.session_state:
+            response = requests.get(f"{API_URL}/logs", params={"limit": 50, "offset": (page_number - 1) * 50,
+                                    "search": search, "period": period, "sort": "newest"},
+                                    headers=auth_headers(), timeout=30)
+            require_session(response)
+            response.raise_for_status()
+            st.session_state.request_log_data = response.json()
+            st.session_state.log_signature = signature
         data = st.session_state.request_log_data
-        st.caption(f"Total requests: {data['total']}")
-        if data["logs"]:
-            records = {record["id"]: record for record in data["logs"]}
-            request_ids = list(records)
-            previous = st.session_state.get("active_request", request_ids[0])
-            if st.session_state.get("request_choice") not in request_ids:
-                st.session_state.request_choice = previous if previous in request_ids else request_ids[0]
-            with st.sidebar:
-                st.markdown("### Request history")
-                selected = st.radio(
-                    "Choose a request", request_ids,
-                    format_func=lambda request_id: (
-                        f"Request {request_id} · "
-                        f"{' '.join(str(records[request_id]['prompt']).split())[:48]}"
-                    ),
-                    key="request_choice", label_visibility="collapsed",
-                )
-            st.session_state.active_request = selected
-            render_log_record(records[selected])
-        else:
-            st.info("No requests yet. Send a coding question to see its details here.")
-    except requests.exceptions.Timeout:
-        st.error("Loading requests took too long. Select Refresh logs to try again.")
+        counts = data.get("counts", {})
+        with filters:
+            with st.container(border=True):
+                st.markdown('<span class="cm-log-filters" aria-hidden="true"></span>', unsafe_allow_html=True)
+                st.button("＋  New Request", on_click=start_new_request, type="primary", use_container_width=True)
+                for value, label in [("all", "▦  All Requests"), ("today", "▣  Today"), ("week", "▣  Last 7 days"), ("month", "▣  Last 30 days"), ("starred", "☆  Starred")]:
+                    st.button(f"{label}    {counts.get(value, data['total'] if value == 'all' else 0)}", key=f"filter_{value}",
+                              on_click=choose_log_filter, args=(value,), type="primary" if period == value else "secondary", use_container_width=True)
+        with history:
+            if not data["logs"]:
+                st.info("No saved requests match this view. Start a new request or change your filters.")
+            for record in data["logs"]:
+                with st.container(border=True):
+                    st.markdown('<span class="cm-log-row" aria-hidden="true"></span>', unsafe_allow_html=True)
+                    icon, details, timestamp, actions = st.columns([.45, 5.5, 2, .45])
+                    with icon:
+                        st.markdown('<span class="cm-history-icon">☏</span>', unsafe_allow_html=True)
+                    with details:
+                        prompt = " ".join(str(record["prompt"]).split())
+                        title = prompt[:70] + ("…" if len(prompt) > 70 else "")
+                        if st.button(title, key=f"open_log_{record['id']}", use_container_width=True):
+                            st.session_state.active_request = None if st.session_state.get("active_request") == record["id"] else record["id"]
+                        st.caption(prompt[:120] + ("…" if len(prompt) > 120 else ""))
+                    with timestamp:
+                        raw = str(record.get("timestamp", ""))
+                        try:
+                            label = datetime.fromisoformat(raw).strftime("%b %d, %I:%M %p")
+                        except ValueError:
+                            label = ""
+                        st.markdown(f'<div class="cm-log-meta"><time>{escape(label)}</time><span class="cm-message-count">2 messages</span></div>', unsafe_allow_html=True)
+                    with actions:
+                        with st.popover("⋮"):
+                            if st.button("Unstar" if record.get("starred") else "Star request", key=f"star_{record['id']}"):
+                                result = requests.patch(f"{API_URL}/logs/{record['id']}/star", json={"starred": not record.get("starred", False)}, headers=auth_headers(), timeout=30)
+                                require_session(result)
+                                result.raise_for_status()
+                                st.session_state.pop("request_log_data", None)
+                                st.rerun()
+                    if st.session_state.get("active_request") == record["id"]:
+                        render_log_record(record)
+            total_pages = max(1, (data["total"] + 49) // 50)
+            total, previous, current, following = st.columns([8, .6, .6, .6])
+            total.caption(f"Total requests: {data['total']}")
+            previous.button("←", disabled=page_number <= 1, on_click=change_log_page, args=(-1,), key="previous_logs")
+            current.button(str(page_number), disabled=True, key="current_logs", type="primary")
+            following.button("→", disabled=page_number >= total_pages, on_click=change_log_page, args=(1,), key="next_logs")
     except (requests.RequestException, ValueError, KeyError, TypeError) as error:
-        st.error(f"We couldn’t load the request log: {error}")
+        with history:
+            st.error(f"We couldn’t load your requests: {error}")
+            if st.button("Retry loading requests"):
+                st.session_state.pop("request_log_data", None)
+                st.rerun()
 
 
 page = render_shell(show_navigation="auth_token" in st.session_state)

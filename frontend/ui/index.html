@@ -20,12 +20,20 @@ button:focus-visible { outline: 2px solid var(--cm-accent); outline-offset: 3px;
 .tip-wrap:hover .tooltip, .tip-wrap:focus-within .tooltip { display: block; }
 @media(max-width: 520px) { .brand { font-size: 17px; } .label { display: none; } nav, .links { gap: var(--cm-space-1); } button { padding: 0; width: 44px; } .appearance { padding-left: var(--cm-space-1); } }
 @media(prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+.brand { color: var(--cm-text); font-family: Arial, Helvetica, sans-serif; font-size: 23px; font-weight: 700; padding: 0; }
+.brand-symbol { color: #14715a; font-size: 36px; margin-right: 8px; }
+nav { min-height: 86px; padding: 0 14px; }
+.links button { font-size: 15px; min-height: 48px; padding: 0 18px; border-radius: 15px; }
+.links .icon { font-size: 23px; }
+.appearance button { padding: 0; }
+@media(max-width: 680px) { .brand { font-size: 17px; } .brand-symbol { font-size: 25px; margin-right: 0; } .links button { padding: 0; width: 36px; } nav { padding: 0; gap: 6px; } .label { display: none; } }
+:root[data-page="logs"] nav { min-height: 66px; }
 </style></head>
 <body>
-<nav aria-label="Main navigation"><button id="home" class="brand" aria-label="CodeMentor-LLM home">CodeMentor-LLM</button><div class="links">
-<div class="tip-wrap"><button id="workspace" aria-label="Workspace" aria-current="page"><span class="icon" aria-hidden="true">▦</span><span class="label">Workspace</span></button></div>
-<div class="tip-wrap"><button id="logs" aria-label="Request Log"><span class="icon" aria-hidden="true">☷</span><span class="label">Request Log</span></button></div>
-<div><button id="logout" aria-label="Log out"><span class="icon" aria-hidden="true">↪</span><span class="label">Log out</span></button></div>
+<nav aria-label="Main navigation"><button id="home" class="brand" aria-label="CodeMentor-LLM home"><span class="brand-symbol" aria-hidden="true">&lt;/&gt;</span>Code Mentor LLM</button><div class="links">
+<div class="tip-wrap"><button id="workspace" aria-label="Workspace" aria-current="page"><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/></svg></span><span class="label">Workspace</span></button></div>
+<div class="tip-wrap"><button id="logs" aria-label="Request Log"><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h12M9 12h12M9 19h12"/><path d="M2 5h2M2 12h2M2 19h2"/></svg></span><span class="label">Request Log</span></button></div>
+<div><button id="logout" aria-label="Log out"><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H6a3 3 0 00-3 3v10a3 3 0 003 3h4m5-13 5 5-5 5M9 12h12"/></svg></span><span class="label">Log out</span></button></div>
 <div class="appearance tip-wrap"><button id="appearance" aria-label="Appearance"><span class="icon" aria-hidden="true">◐</span></button></div>
 </div></nav>
 <script>
@@ -39,7 +47,15 @@ button:focus-visible { outline: 2px solid var(--cm-accent); outline-offset: 3px;
   let sendTimer;
   let queuedChange = false;
   const send = (type, payload = {}) => window.parent.postMessage({isStreamlitMessage: true, type, ...payload}, '*');
+  let lastFrameHeight = null;
+  const syncFrameHeight = () => {
+    const height = page === 'logs' ? 80 : 108;
+    if (height === lastFrameHeight) return;
+    lastFrameHeight = height;
+    send('streamlit:setFrameHeight', {height});
+  };
   const render = () => {
+    document.documentElement.dataset.page = page;
     document.documentElement.style.colorScheme = appearance;
     for (const id of ['workspace', 'logs']) {
       const button = document.getElementById(id);
@@ -52,8 +68,11 @@ button:focus-visible { outline: 2px solid var(--cm-accent); outline-offset: 3px;
     // documents in the same task rather than waiting for a Python round trip.
     try {
       const appRoot = window.parent.document.documentElement;
-      appRoot.style.setProperty('--cm-appearance', appearance);
-      appRoot.style.colorScheme = appearance;
+      if (appRoot.dataset.cmTheme !== appearance) {
+        appRoot.style.setProperty('--cm-appearance', appearance);
+        appRoot.style.colorScheme = appearance;
+        appRoot.dataset.cmTheme = appearance;
+      }
     } catch {
       // Cross-origin embeds wait for the server acknowledgement instead.
       return false;
@@ -94,11 +113,11 @@ button:focus-visible { outline: 2px solid var(--cm-accent); outline-offset: 3px;
     }
     applyAppearance();
     render();
-    send('streamlit:setFrameHeight', {height: 108});
+    syncFrameHeight();
     if (hasQueuedChange) queueChange();
   });
   document.getElementById('home').onclick = () => {
-    page = 'workspace'; render(); queueChange();
+    page = 'home'; render(); queueChange();
   };
   document.getElementById('workspace').onclick = () => {
     if (page === 'workspace') return;
@@ -117,6 +136,6 @@ button:focus-visible { outline: 2px solid var(--cm-accent); outline-offset: 3px;
     queueChange();
   };
   send('streamlit:componentReady', {apiVersion: 1});
-  send('streamlit:setFrameHeight', {height: 108});
+  syncFrameHeight();
 })();
 </script></body></html>

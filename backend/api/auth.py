@@ -20,6 +20,12 @@ class Credentials(BaseModel):
     password: str = Field(min_length=8, max_length=128)
 
 
+class Registration(Credentials):
+    full_name: str | None = Field(default=None, min_length=1, max_length=120)
+    email: str | None = Field(default=None, max_length=254)
+    terms_accepted: bool = False
+
+
 def password_hash(password: str, salt: str | None = None) -> str:
     salt = salt or secrets.token_hex(16)
     digest = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt), 600_000).hex()
@@ -48,11 +54,16 @@ def new_session(db: Session, user: User) -> dict:
 
 
 @router.post("/register", status_code=201)
-def register(data: Credentials, db: Session = Depends(get_db)):
+def register(data: Registration, db: Session = Depends(get_db)):
     username = data.username.strip().casefold()
     if len(username) < 3:
         raise HTTPException(422, "Username must contain at least 3 characters")
-    user = User(username=username, password_hash=password_hash(data.password))
+    email = data.email.strip().casefold() if data.email else None
+    if email and ("@" not in email or "." not in email.rsplit("@", 1)[-1]):
+        raise HTTPException(422, "Enter a valid email address")
+    user = User(username=username, password_hash=password_hash(data.password),
+                full_name=data.full_name.strip() if data.full_name else None, email=email,
+                terms_accepted_at=datetime.utcnow() if data.terms_accepted else None)
     db.add(user)
     try:
         db.commit()

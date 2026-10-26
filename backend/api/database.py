@@ -40,6 +40,7 @@ class InferenceLog(Base):
     latency_ms = Column(Float, nullable=False)
     timestamp  = Column(DateTime, default=datetime.utcnow)
     success    = Column(Boolean, default=True)
+    starred    = Column(Boolean, default=False, nullable=False)
 
 
 class User(Base):
@@ -47,6 +48,9 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String(80), unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=False)
+    full_name = Column(String(120), nullable=True)
+    email = Column(String(254), nullable=True)
+    terms_accepted_at = Column(DateTime, nullable=True)
 
 
 class AuthSession(Base):
@@ -60,6 +64,14 @@ class AuthSession(Base):
 def create_tables():
     """Create all database tables."""
     Base.metadata.create_all(bind=engine)
+    user_columns = {column["name"] for column in inspect(engine).get_columns("users")}
+    with engine.begin() as connection:
+        for name, sql_type in [("full_name", "VARCHAR(120)"), ("email", "VARCHAR(254)"), ("terms_accepted_at", "DATETIME")]:
+            if name not in user_columns:
+                connection.execute(text(f"ALTER TABLE users ADD COLUMN {name} {sql_type}"))
+    if "starred" not in {column["name"] for column in inspect(engine).get_columns("inference_logs")}:
+        with engine.begin() as connection:
+            connection.execute(text("ALTER TABLE inference_logs ADD COLUMN starred BOOLEAN NOT NULL DEFAULT 0"))
     if "user_id" not in {column["name"] for column in inspect(engine).get_columns("inference_logs")}:
         with engine.begin() as connection:
             connection.execute(text("ALTER TABLE inference_logs ADD COLUMN user_id INTEGER"))

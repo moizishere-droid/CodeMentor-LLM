@@ -39,6 +39,7 @@ class LogEntry(BaseModel):
     latency_ms: float
     timestamp: datetime
     success: bool
+    starred: bool = False
 
     class Config:
         from_attributes = True
@@ -47,3 +48,4 @@ class LogEntry(BaseModel):
 class LogsResponse(BaseModel):
     logs: list[LogEntry]
     total: int
+    counts: dict[str, int] = Field(default_factory=dict)

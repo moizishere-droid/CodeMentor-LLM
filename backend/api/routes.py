@@ -11,7 +11,11 @@ It is the bridge between:
 
 import json
 import time
-from fastapi import APIRouter, Depends, Query
+from datetime import datetime, timedelta
+from typing import Literal
+from sqlalchemy import or_
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -133,7 +137,9 @@ def generate_stream(request: GenerateRequest, user: User = Depends(current_user)
 
 
 @router.get("/logs", response_model=LogsResponse)
-def get_logs(limit: int = Query(default=50, ge=1, le=100), offset: int = Query(default=0, ge=0), db: Session = Depends(get_db), user: User = Depends(current_user)):
+def get_logs(limit: int = Query(default=50, ge=1, le=100), offset: int = Query(default=0, ge=0),
+             search: str = Query(default="", max_length=500), period: Literal["all", "today", "week", "month", "starred"] = "all",
+             sort: Literal["newest", "oldest"] = "newest", db: Session = Depends(get_db), user: User = Depends(current_user)):
     """
     Retrieve recent inference logs.
     Args:
@@ -144,11 +150,41 @@ def get_logs(limit: int = Query(default=50, ge=1, le=100), offset: int = Query(d
         LogsResponse with list of logs and total count
     """
     query = db.query(InferenceLog).filter(InferenceLog.user_id == user.id)
+    if search.strip():
+        term = "%" + search.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+        query = query.filter(or_(InferenceLog.prompt.ilike(term, escape="\\"), InferenceLog.response.ilike(term, escape="\\")))
+    if period == "starred":
+        query = query.filter(InferenceLog.starred.is_(True))
+    elif period != "all":
+        now = datetime.utcnow()
+        since = now.replace(hour=0, minute=0, second=0, microsecond=0) if period == "today" else now - timedelta(days=7 if period == "week" else 30)
+        query = query.filter(InferenceLog.timestamp >= since)
+    ordering = InferenceLog.timestamp.desc() if sort == "newest" else InferenceLog.timestamp.asc()
     logs = query\
-             .order_by(InferenceLog.timestamp.desc())\
+             .order_by(ordering, InferenceLog.id.desc())\
              .offset(offset)\
              .limit(limit)\
              .all()
     total = query.count()
 
-    return LogsResponse(logs=logs, total=total)
+    base = db.query(InferenceLog).filter(InferenceLog.user_id == user.id)
+    now = datetime.utcnow()
+    counts = {"all": base.count(), "today": base.filter(InferenceLog.timestamp >= now.replace(hour=0, minute=0, second=0, microsecond=0)).count(),
+              "week": base.filter(InferenceLog.timestamp >= now - timedelta(days=7)).count(),
+              "month": base.filter(InferenceLog.timestamp >= now - timedelta(days=30)).count(),
+              "starred": base.filter(InferenceLog.starred.is_(True)).count()}
+    return LogsResponse(logs=logs, total=total, counts=counts)
+
+
+class StarRequest(BaseModel):
+    starred: bool
+
+
+@router.patch("/logs/{log_id}/star")
+def star_log(log_id: int, data: StarRequest, db: Session = Depends(get_db), user: User = Depends(current_user)):
+    record = db.query(InferenceLog).filter(InferenceLog.id == log_id, InferenceLog.user_id == user.id).first()
+    if record is None:
+        raise HTTPException(404, "Response not found")
+    record.starred = data.starred
+    db.commit()
+    return {"id": record.id, "starred": record.starred}

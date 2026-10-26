@@ -70,6 +70,8 @@ def test_accounts_history_and_logout(client):
 def test_existing_database_migration(tmp_path, monkeypatch):
     engine = create_engine(f"sqlite:///{tmp_path / 'legacy.db'}")
     with engine.begin() as connection:
+        connection.execute(text("CREATE TABLE users (id INTEGER PRIMARY KEY, username VARCHAR NOT NULL UNIQUE, password_hash VARCHAR NOT NULL)"))
+        connection.execute(text("INSERT INTO users (username,password_hash) VALUES ('existing-user','existing-hash')"))
         connection.execute(text("CREATE TABLE inference_logs (id INTEGER PRIMARY KEY, prompt VARCHAR NOT NULL, response VARCHAR NOT NULL, latency_ms FLOAT NOT NULL, timestamp DATETIME, success BOOLEAN)"))
         connection.execute(text("INSERT INTO inference_logs (prompt,response,latency_ms,success) VALUES ('old prompt','old answer',1,1)"))
     monkeypatch.setattr(database, "engine", engine)
@@ -78,4 +80,33 @@ def test_existing_database_migration(tmp_path, monkeypatch):
     assert "user_id" in {c["name"] for c in inspect(engine).get_columns("inference_logs")}
     with engine.connect() as connection:
         assert connection.execute(text("SELECT response, user_id FROM inference_logs")).one() == ("old answer", None)
+        assert connection.execute(text("SELECT username, password_hash, full_name, email FROM users")).one() == ("existing-user", "existing-hash", None, None)
     engine.dispose()
+
+
+def test_profile_and_private_search_star_filters(client):
+    client, factory = client
+    response = client.post("/auth/register", json={"username": "profile-user", "password": "password123", "full_name": "Test Person", "email": "person@example.com", "terms_accepted": True})
+    assert response.status_code == 201
+    headers = {"Authorization": "Bearer " + response.json()["token"]}
+    from api.database import User
+    with factory() as db:
+        user = db.query(User).filter_by(username="profile-user").one()
+        assert user.full_name == "Test Person"
+        assert user.email == "person@example.com"
+        assert user.terms_accepted_at is not None
+    with patch.object(routes, "generate_response", return_value={"response": "Use a decorator", "latency_ms": 1, "success": True}):
+        client.post("/generate", headers=headers, json={"prompt": "Python function"})
+    logs = client.get("/logs?search=decorator", headers=headers).json()
+    assert logs["total"] == 1
+    log_id = logs["logs"][0]["id"]
+    assert client.get("/logs?search=missing", headers=headers).json()["total"] == 0
+    assert client.get("/logs?period=starred", headers=headers).json()["total"] == 0
+    assert client.patch(f"/logs/{log_id}/star", headers=headers, json={"starred": True}).status_code == 200
+    starred = client.get("/logs?period=starred", headers=headers).json()
+    assert starred["total"] == 1
+    assert starred["counts"]["starred"] == 1
+    assert client.get("/logs?period=today", headers=headers).json()["total"] == 1
+    other = register(client, "other-user")
+    assert client.patch(f"/logs/{log_id}/star", headers=other, json={"starred": False}).status_code == 404
+    assert client.get("/logs?search=decorator", headers=other).json()["total"] == 0

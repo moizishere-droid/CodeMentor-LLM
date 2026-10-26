@@ -53,9 +53,12 @@ def test_streaming_contract_and_response_survives_rerender():
         submit(app, "Explain decorators")
     assert not app.exception
     assert app.session_state.answer == "Hello world"
+    assert not any('<span class="cm-generating"' in item.value for item in app.markdown)
+    assert app.text_area[0].proto.placeholder == "Ask another coding question…"
     assert post.call_args.kwargs == {
         "json": {"prompt": "Explain decorators", "max_new_tokens": 512},
         "stream": True, "timeout": (30, 180),
+        "headers": {"Authorization": "Bearer test-session"},
     }
     app.session_state.appearance = "dark"
     app.run()
@@ -70,6 +73,8 @@ def test_generation_errors_are_visible(error):
         submit(app, "Explain decorators")
     assert not app.exception
     assert len(app.error) == 1
+    assert not any('<span class="cm-generating"' in item.value for item in app.markdown)
+    assert app.text_area[0].proto.placeholder == "Ask another coding question…"
 
 
 def test_logs_empty_and_http_error_states():
@@ -80,11 +85,15 @@ def test_logs_empty_and_http_error_states():
     with patch("requests.get", return_value=response) as get:
         app.run()
     assert not app.exception
-    assert "No requests yet" in app.info[0].value
-    assert get.call_args.args[0].endswith("/logs?limit=50")
+    assert "No saved requests" in app.info[0].value
+    assert get.call_args.args[0].endswith("/logs")
+    assert get.call_args.kwargs["params"]["limit"] == 50
+    assert get.call_args.kwargs["params"]["sort"] == "newest"
+    assert not app.selectbox
     response.raise_for_status.side_effect = requests.HTTPError("503")
     with patch("requests.get", return_value=response):
-        next(button for button in app.button if button.label == "Refresh logs").click().run()
+        del app.session_state["request_log_data"]
+        app.run()
     assert "couldn’t load" in app.error[0].value
 
 
@@ -99,6 +108,8 @@ def test_logs_present_only_requested_fields_with_full_response():
     with patch("requests.get", return_value=response):
         app.run()
     assert not app.exception
+    with patch("requests.get", return_value=response):
+        next(button for button in app.button if button.key == "open_log_1").click().run()
     content = "\n".join(item.value for item in app.markdown)
     assert "Request #1" in content
     assert "Question" in content
@@ -160,6 +171,9 @@ def test_failed_log_status_and_escaped_prompt():
     with patch("requests.get", return_value=response):
         app.run()
     content = "\n".join(item.value for item in app.markdown)
+    with patch("requests.get", return_value=response):
+        next(button for button in app.button if button.key == "open_log_9").click().run()
+    content = "\n".join(item.value for item in app.markdown)
     assert "Status: Failed" in content
     assert "&lt;script&gt;" in content
     assert "<script>" not in content
@@ -213,9 +227,97 @@ def test_history_selection_loads_one_request_without_fetching_again():
     ]}
     with patch("requests.get", return_value=response) as get:
         app.run()
-        app.sidebar.radio[0].set_value(1).run()
+        next(button for button in app.button if button.key == "open_log_1").click().run()
     assert get.call_count == 1
     content = "\n".join(item.value for item in app.markdown)
     assert "First answer" in content
     assert "Second answer" not in content
     assert "Success" in content
+
+
+def test_account_pages_switch_and_validate_profile_before_signup():
+    app = AppTest.from_file(str(FRONTEND / "app.py")).run()
+    assert not app.exception
+    assert [field.label for field in app.text_input] == ["Username", "Password"]
+    assert not app.get("component_instance")
+    next(button for button in app.button if button.key == "landing_signup").click().run()
+    assert [field.label for field in app.text_input] == ["Username", "Email", "Password", "Confirm password"]
+    with patch("requests.post") as post:
+        next(button for button in app.button if button.label.startswith("Sign up  ")).click().run()
+    assert not app.exception
+    post.assert_not_called()
+    assert "email address" in app.error[0].value
+
+
+@pytest.mark.parametrize("page", ["workspace", "logs"])
+def test_logo_returns_to_landing_from_answers_or_history(page):
+    app = workspace()
+    app.session_state.answer = "Previous saved response"
+    app.session_state.has_asked = True
+    app.session_state.prompt = "Unsent follow-up"
+    app.session_state.page = page
+    app.session_state.main_navigation = {"page": "home", "appearance": "dark", "revision": 10}
+    app.run()
+    assert not app.exception
+    assert app.session_state.page == "workspace"
+    assert app.session_state.appearance == "dark"
+    assert app.session_state.auth_token == "test-session"
+    assert not app.chat_message
+    assert app.text_area[0].proto.placeholder == "What are you working on?"
+    assert app.text_area[0].value == ""
+    assert any("work it out" in item.value for item in app.markdown)
+
+
+def test_login_opens_landing_without_loading_previous_answer():
+    app = AppTest.from_file(str(FRONTEND / "app.py")).run()
+    app.text_input[0].input("existing-user")
+    app.text_input[1].input("password123")
+    response = MagicMock()
+    response.ok = True
+    response.json.return_value = {"token": "fresh-session", "username": "existing-user"}
+    with patch("requests.post", return_value=response), patch("requests.get") as history:
+        next(button for button in app.button if button.label.startswith("Log in  ")).click().run()
+    assert not app.exception
+    history.assert_not_called()
+    assert app.session_state.auth_token == "fresh-session"
+    assert not app.chat_message
+    assert app.text_area[0].proto.placeholder == "What are you working on?"
+
+
+def test_recovery_notification_uses_a_dismissible_popup():
+    app = AppTest.from_file(str(FRONTEND / "app.py")).run()
+    next(button for button in app.button if button.label == "Forgot password?").click().run()
+    assert not app.exception
+    assert "Password recovery is not configured" in app.info[0].value
+    assert any(button.label == "OK" for button in app.button)
+
+
+def test_signup_fields_keep_text_across_redraws_and_validation_errors():
+    app = AppTest.from_file(str(FRONTEND / "app.py"))
+    app.session_state.account_mode = "Sign up"
+    app.run()
+    app.text_input(key="signup_username").input("typing-test")
+    app.text_input(key="signup_email").input("typing@example.com")
+    with patch("requests.post") as post:
+        for prefix in ("a", "ab", "abc", "abcd", "abcdefgh"):
+            app.text_input(key="signup_password").input(prefix).run()
+            assert not app.exception
+            assert app.text_input(key="signup_password").value == prefix
+            assert app.text_input(key="signup_username").value == "typing-test"
+            assert app.text_input(key="signup_email").value == "typing@example.com"
+        app.text_input(key="signup_confirm_password").input("abcdefgh").run()
+        next(button for button in app.button if button.label.startswith("Sign up  ")).click().run()
+        assert app.error  # Missing agreement should keep the draft intact.
+        assert app.text_input(key="signup_password").value == "abcdefgh"
+        assert app.text_input(key="signup_confirm_password").value == "abcdefgh"
+        post.assert_not_called()
+
+
+def test_login_fields_keep_a_draft_across_redraws():
+    app = AppTest.from_file(str(FRONTEND / "app.py")).run()
+    app.text_input(key="login_username").input("typing-test").run()
+    app.text_input(key="login_password").input("test-password").run()
+    app.run()
+    assert not app.exception
+    assert app.text_input(key="login_username").value == "typing-test"
+    assert app.text_input(key="login_password").value == "test-password"

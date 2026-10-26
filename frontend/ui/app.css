@@ -108,117 +108,345 @@ button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px sol
 /* Keep response content centered with equal room on both sides. */
 [data-testid="stChatMessage"] { box-sizing: border-box; padding: 24px; margin-inline: auto; }
 [data-testid="stChatMessageContent"] { min-width: 0; flex: 1; }
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] button { width: auto; padding: 0 24px; border-radius: var(--cm-radius); }
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] button p { position: static; width: auto; height: auto; clip-path: none; overflow: visible; }
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] button::after { content: none; }
 
-/* Account fields keep a white surface and provide clear hover/focus feedback. */
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] :is([data-baseweb="input"], [data-baseweb="base-input"]) {
-  background: #ffffff;
-  color: #202426;
-  border-radius: var(--cm-radius);
-  transition: border-color 180ms ease, box-shadow 180ms ease;
+/* Reference account pages. These rules do not affect the signed-in workspace. */
+[data-testid="stApp"]:has(.cm-auth-page), [data-testid="stAppViewContainer"]:has(.cm-auth-page) {
+  background: radial-gradient(ellipse at 70% 54%, #f2f8f4 0%, #ffffff 64%); color: #101820; color-scheme: light;
+  --cm-bg: #fff; --cm-text: #101820; --cm-muted: #7a8089; --cm-border: #e1e6e3; --cm-surface: #f6f7f7;
+  font-family: Arial, Helvetica, sans-serif;
 }
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] [data-baseweb="input"] {
-  border: 1px solid #d2dad6;
-}
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] input {
-  background: #ffffff;
-  color: #202426;
-  caret-color: #202426;
-  -webkit-text-fill-color: #202426;
-}
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] input::placeholder { color: #60686c; opacity: 1; }
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] button { background: #ffffff; color: #60686c; transition: color 180ms ease, background-color 180ms ease; }
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] button:hover { color: #246f60; background: #eaf2ef; }
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] [data-testid="InputInstructions"] { color: #60686c; }
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] [data-baseweb="input"]:hover {
-  border-color: #78a99b;
-  box-shadow: 0 0 0 3px #246f6010;
-}
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] [data-baseweb="input"]:focus-within {
-  border-color: #246f60;
-  box-shadow: 0 0 0 3px #246f6026;
-}
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] button {
-  transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
-}
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] button:hover {
-  background: #246f60;
-  border-color: #246f60;
-  color: #ffffff;
-  box-shadow: 0 4px 12px #246f6026;
-  transform: translateY(-1px);
-}
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] button:active { transform: translateY(0); box-shadow: none; }
-@media (prefers-reduced-motion: reduce) {
-  [data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] button { transition: none; transform: none; }
-  [data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] :is([data-baseweb="input"], [data-baseweb="base-input"], button) { transition: none; }
-}
+.block-container:has(.cm-auth-page) { max-width: 1500px; padding: 18px 50px 22px; min-height: 100svh; }
+.block-container:has(.cm-auth-page) [data-testid="stVerticalBlock"] { gap: 12px; }
+.block-container:has(.cm-auth-page) [data-testid="stHorizontalBlock"] { max-width: none; margin: 0; width: 100%; gap: 36px; flex-direction: row; align-items: center; }
+.block-container:has(.cm-auth-page) [data-testid="stHorizontalBlock"] > :is([data-testid="column"], [data-testid="stColumn"]) { min-width: 0; width: auto !important; }
+.block-container:has(.cm-auth-page) [data-testid="stHorizontalBlock"] > :is([data-testid="column"], [data-testid="stColumn"]):has(.cm-login-intro) { flex: 1.18 1 0 !important; }
+.block-container:has(.cm-auth-page) [data-testid="stHorizontalBlock"] > :is([data-testid="column"], [data-testid="stColumn"]):has(.cm-account-card) { flex: 1 1 0 !important; }
+.block-container:has(.cm-auth-page) [data-testid="stHorizontalBlock"] > :is([data-testid="column"], [data-testid="stColumn"]):has(.cm-landing-brand) { flex: 1 1 0 !important; }
+.block-container:has(.cm-auth-page) [data-testid="stHorizontalBlock"] > :is([data-testid="column"], [data-testid="stColumn"]):has(.cm-top-action) { flex: 0 0 310px !important; }
+.cm-landing-brand { display: flex; align-items: center; gap: 12px; color: #101820; font-size: 23px; font-weight: 700; letter-spacing: -.7px; min-height: 58px; }
+.cm-landing-brand > span { color: #11614d; font-size: 34px; font-weight: 650; }
+.block-container:has(.cm-auth-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-top-action) { flex-direction: row; gap: 18px; align-items: center; justify-content: flex-end; }
+.block-container:has(.cm-auth-page) :is([data-testid="column"], [data-testid="stColumn"]):has(.cm-top-action) [data-testid="stCaptionContainer"] { white-space: nowrap; }
+.block-container:has(.cm-auth-page) :is([data-testid="column"], [data-testid="stColumn"]):has(.cm-top-action) [data-testid="stButton"] button { width: 112px; min-height: 46px; padding: 10px 20px; border: 1px solid #377e68 !important; border-radius: 11px; color: #14634f !important; background: transparent !important; }
+.cm-login-intro { position: relative; min-height: 555px; padding: 36px 0 0 15px; }
+.cm-landing-eyebrow { display: inline-block; padding: 9px 16px; border-radius: 24px; background: #ebf5ef; color: #276b59; font-size: 10px; font-weight: 700; letter-spacing: 2.3px; }
+.cm-login-intro h1 { color: #080e15; font-family: Arial, Helvetica, sans-serif; font-size: clamp(32px, 3.5vw, 52px); line-height: 1.12; font-weight: 750; letter-spacing: -2px; padding: 0; margin: 25px 0 21px; }
+.cm-landing-description { color: #7b818a; font-family: Arial, Helvetica, sans-serif; font-size: 17px; line-height: 1.65; margin: 0 0 32px; }
+.cm-landing-features { position: relative; z-index: 1; width: 62%; }
+.cm-landing-features > div { display: flex; align-items: center; gap: 24px; margin: 0 0 23px; }
+.cm-feature-icon { display: flex; flex: 0 0 54px; height: 54px; align-items: center; justify-content: center; border-radius: 13px; background: #e9f6ee; color: #0d624c; font-size: 28px; font-weight: 600; }
+.cm-landing-features h3 { font-family: Arial, Helvetica, sans-serif; color: #202732; font-size: 16px; font-weight: 650; padding: 0; margin: 0 0 6px; }
+.cm-landing-features p { font-family: Arial, Helvetica, sans-serif; color: #80858d; font-size: 13px; line-height: 1.5; margin: 0; }
+.cm-reference-art { position: absolute; right: -18px; bottom: 20px; width: 350px; height: 390px; background-repeat: no-repeat; background-size: 1600px 900px; background-position: -505px -375px; mix-blend-mode: multiply; pointer-events: none; }
+.block-container:has(.cm-auth-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-account-card) { border: 1px solid #e3e9e5; border-radius: 19px; padding: 32px 36px 26px; background: #ffffffd9; box-shadow: 0 10px 45px #1a50360b; gap: 13px; }
+.cm-login-title { text-align: center; margin: 0 0 15px; }
+.cm-login-title h2 { color: #0a1118; font-family: Arial, Helvetica, sans-serif; font-size: clamp(23px, 2.1vw, 32px); line-height: 1.18; font-weight: 750; letter-spacing: -1.25px; padding: 0; margin: 5px 0 10px; }
+.cm-login-title p { color: #80858d; font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 1.55; margin: 0; }
+.block-container:has(.cm-auth-page) [data-testid="stForm"] { max-width: none; border: 0; border-radius: 0; padding: 0; margin: 0; background: transparent; box-shadow: none; }
+.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stVerticalBlock"] { gap: 17px; }
+.block-container:has(.cm-auth-page) [data-testid="stWidgetLabel"] p { color: #202a32; font-family: Arial, Helvetica, sans-serif; font-size: 13px; }
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] :is([data-baseweb="input"], [data-baseweb="base-input"]) { background: #fff; color: #29343d; border-radius: 11px; }
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] [data-baseweb="input"] { border: 1px solid #dce1df; transition: border-color 180ms, box-shadow 180ms; }
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] input { height: 49px; padding: 12px 15px 12px 43px; font-family: Arial, Helvetica, sans-serif; font-size: 14px; background-color: #fff; color: #29343d; -webkit-text-fill-color: #29343d; caret-color: #29343d; background-repeat: no-repeat; background-position: 15px center; background-size: 20px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237d868b' stroke-width='1.8'%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3Cpath d='M3 22v-3a9 7 0 0118 0v3z'/%3E%3C/svg%3E"); }
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] input[aria-label*="assword"] { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237d868b' stroke-width='1.8'%3E%3Crect x='4' y='10' width='16' height='12' rx='2'/%3E%3Cpath d='M7 10V6a5 5 0 0110 0v4m-5 5v3'/%3E%3C/svg%3E"); }
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] input[aria-label="Email"] { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237d868b' stroke-width='1.8'%3E%3Crect x='2' y='4' width='20' height='16' rx='2'/%3E%3Cpath d='m2 5 10 8L22 5'/%3E%3C/svg%3E"); }
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] input::placeholder { color: #969ba1; -webkit-text-fill-color: #969ba1; opacity: 1; }
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] button { color: #6b777a; background: #fff; }
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] [data-baseweb="input"]:hover { border-color: #85b09e; }
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] [data-baseweb="input"]:focus-within { border-color: #0d604b; box-shadow: 0 0 0 3px #0d604b15; }
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] :is([data-testid="InputInstructions"], [data-testid="stInputInstructions"]) { display: none; }
+.block-container:has(.cm-auth-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button { color: #fff; border: 1px solid #0b5b46; background: #0b5b46; border-radius: 11px; min-height: 49px; font-family: Arial, Helvetica, sans-serif; transition: background 180ms, box-shadow 180ms; }
+.block-container:has(.cm-auth-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button p { color: inherit; font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: 600; }
+.block-container:has(.cm-auth-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button:hover { border-color: #084c3a; background: #084c3a; transform: none; box-shadow: 0 3px 12px #0b5b4618; }
+.block-container:has(.cm-auth-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button:is(:focus, :active) { border-color: #0b5b46 !important; color: inherit; box-shadow: none; outline: none !important; }
+.block-container:has(.cm-auth-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button:focus-visible { outline: 2px solid #377e68 !important; outline-offset: 3px; }
+.block-container:has(.cm-auth-page) [data-testid="stFormSubmitButton"] button { width: 100%; height: auto; padding: 12px 24px; }
+.block-container:has(.cm-auth-page) [data-testid="stFormSubmitButton"] button p { position: static; width: auto; height: auto; clip-path: none; overflow: visible; white-space: normal; }
+.block-container:has(.cm-auth-page) [data-testid="stFormSubmitButton"] button::after { content: none; }
+.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stHorizontalBlock"] { gap: 8px; }
+.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stHorizontalBlock"] > :is([data-testid="column"], [data-testid="stColumn"]) { flex: 1 1 0 !important; }
+.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stHorizontalBlock"] [data-testid="stFormSubmitButton"] button { background: transparent; color: #17634f; border: 0; padding: 0; min-height: 30px; text-decoration: underline; }
+.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stHorizontalBlock"] [data-testid="stFormSubmitButton"] button p { font-size: 13px; font-weight: 400; }
+.block-container:has(.cm-auth-page) [data-testid="stCheckbox"] { accent-color: #0b5b46; }
+.block-container:has(.cm-auth-page) [data-testid="stCheckbox"] label[data-baseweb="checkbox"] > span:first-child { background-color: #0b5b46; border-color: #0b5b46; border-radius: 4px; }
+.block-container:has(.cm-auth-page) [data-testid="stCheckbox"] p { color: #515d65; font-size: 13px; font-family: Arial, Helvetica, sans-serif; }
+.cm-login-divider { display: flex; gap: 16px; align-items: center; color: #969ca1; font-size: 11px; margin: 0; }
+.cm-login-divider::before, .cm-login-divider::after { content: ''; flex: 1; height: 1px; background: #dce1df; }
+.block-container:has(.cm-auth-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-account-card) > div:has([data-testid="stCaptionContainer"]) { display: none; }
+.block-container:has(.cm-auth-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-account-card) > div:has(> [data-testid="stButton"]) button { width: 100%; background: #f5f6f7; border: 0; color: #15644f; font-size: 14px; min-height: 45px; padding: 10px 14px; }
+.block-container:has(.cm-auth-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-account-card) > div:has(> [data-testid="stButton"]) button p::before { content: "Don’t have an account?  "; color: #46515a; font-weight: 400; }
+.block-container:has(.cm-signup-fields) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-account-card) > div:has(> [data-testid="stButton"]) button p::before { content: "Already have an account?  "; }
+.block-container:has(.cm-signup-fields) .cm-login-title { margin-bottom: 0; }
+.block-container:has(.cm-signup-fields) [data-testid="stForm"] [data-testid="stVerticalBlock"] { gap: 10px; }
+.block-container:has(.cm-signup-fields) [data-testid="stTextInput"] input { height: 37px; }
+.block-container:has(.cm-signup-fields) .cm-login-intro { min-height: 595px; }
+[data-testid="element-container"]:has(> [data-testid="stMarkdown"] :is(.cm-auth-page,.cm-login-landing,.cm-account-card,.cm-auth-form,.cm-top-action,.cm-account-footer,.cm-signup-fields)),
+[data-testid="stElementContainer"]:has(> [data-testid="stMarkdown"] :is(.cm-auth-page,.cm-login-landing,.cm-account-card,.cm-auth-form,.cm-top-action,.cm-account-footer,.cm-signup-fields)) { display: none; }
+@media (max-width: 1200px) { .block-container:has(.cm-auth-page) { padding-inline: 30px; } .cm-reference-art { width: 295px; right: -25px; background-position: -520px -375px; } .cm-landing-features { width: 67%; } .cm-landing-features > div { gap: 14px; } .cm-landing-description { font-size: 15px; } .block-container:has(.cm-auth-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-account-card) { padding: 26px; } }
+@media (max-width: 800px) { .block-container:has(.cm-auth-page) { padding: 16px 20px 32px; } .block-container:has(.cm-auth-page) [data-testid="stHorizontalBlock"]:has(.cm-login-intro) { flex-direction: column; } .block-container:has(.cm-auth-page) [data-testid="stHorizontalBlock"]:has(.cm-login-intro) > :is([data-testid="column"], [data-testid="stColumn"]) { flex: auto !important; width: 100% !important; } .cm-login-intro, .block-container:has(.cm-signup-fields) .cm-login-intro { min-height: auto; padding: 20px 0 0; } .cm-reference-art,.cm-landing-features { display: none; } .cm-login-intro h1 { font-size: 36px; letter-spacing: -1.4px; } .cm-landing-description br { display: none; } .cm-landing-brand { font-size: 18px; white-space: nowrap; } .cm-landing-brand > span { font-size: 26px; } .block-container:has(.cm-auth-page) [data-testid="stHorizontalBlock"] > :is([data-testid="column"], [data-testid="stColumn"]):has(.cm-top-action) { flex: 0 0 100px !important; } .block-container:has(.cm-auth-page) :is([data-testid="column"], [data-testid="stColumn"]):has(.cm-top-action) [data-testid="stCaptionContainer"] { display: none; } }
+@media (prefers-reduced-motion: reduce) { .block-container:has(.cm-auth-page) button { transition: none !important; } }
 
-/* Standalone account screen, centered without the signed-in navigation. */
+/* Match the reference header and prevent Streamlit fixed widget widths overflowing cards. */
+.block-container:has(.cm-auth-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-account-card) [data-testid="element-container"] { width: 100% !important; max-width: 100%; }
+.block-container:has(.cm-auth-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-top-action) > div { flex: 0 0 auto; width: auto !important; }
+.block-container:has(.cm-auth-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-top-action) > div:has(.cm-top-action) { display: none; }
+.block-container:has(.cm-auth-page) [data-testid="stCheckbox"] input:not(:checked) + div { background-color: #fff; }
+.cm-reference-art { clip-path: polygon(22% 0,100% 0,100% 100%,0 100%,0 18%,22% 18%); }
+.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stHorizontalBlock"] [data-testid="stFormSubmitButton"] { display: flex; justify-content: flex-end; }
+.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stHorizontalBlock"] [data-testid="stFormSubmitButton"] button { width: auto; }
+.block-container:has(.cm-auth-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button:is(:focus, :active) { color: #fff; }
+.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stHorizontalBlock"] [data-testid="stFormSubmitButton"] button:is(:focus, :active) { color: #17634f; }
+/* Workspace reference: centered composer with decorative side illustrations. */
+.block-container:has(.cm-workspace-page) { max-width: 1360px; padding: 0 24px 40px; }
+[data-testid="stApp"]:has(.cm-workspace-page), [data-testid="stAppViewContainer"]:has(.cm-workspace-page) { background: #fbfdfc; color-scheme: light; --cm-bg: #fff; --cm-text: #142029; --cm-border: #e5ebe7; --cm-muted: #77818a; }
+.block-container:has(.cm-workspace-page) .cm-heading { max-width: 1050px; text-align: center; margin: 45px auto 18px; position: relative; }
+.block-container:has(.cm-workspace-page) .cm-eyebrow { display: inline-block; border-radius: 30px; padding: 11px 18px; background: #eaf5f0; color: #246f60; font-size: 12px; letter-spacing: 1.5px; font-weight: 650; }
+.block-container:has(.cm-workspace-page) .cm-heading h1 { font-family: Arial, Helvetica, sans-serif; font-size: clamp(32px,3.3vw,49px); line-height: 1.2; letter-spacing: -1.5px; padding: 20px 0 14px; margin: 0; font-weight: 750; }
+.block-container:has(.cm-workspace-page) .cm-heading p { font-family: Arial, Helvetica, sans-serif; font-size: 20px; margin: 0; color: #75808a; }
+.block-container:has(.cm-workspace-page) [data-testid="stForm"] { position: relative; max-width: 790px; border: 1px solid #edf1ee; border-radius: 30px; padding: 22px; box-shadow: 0 12px 40px #19604708; }
+.block-container:has(.cm-workspace-page) [data-testid="stTextArea"] [data-baseweb="textarea"] { border: 1px solid #e1e6e3; border-radius: 15px; }
+.block-container:has(.cm-workspace-page) [data-testid="stTextArea"] textarea { font-family: Arial, Helvetica, sans-serif; font-size: 18px; padding: 18px; }
+.block-container:has(.cm-workspace-page) [data-testid="stFormSubmitButton"] button { width: 57px; height: 57px; background: #075442; border: 0; }
+.block-container:has(.cm-workspace-page) [data-testid="stForm"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:last-child { flex: 0 0 57px !important; }
+.block-container:has(.cm-workspace-page) [data-testid="stFormSubmitButton"] button::after { font-size: 29px; }
+.block-container:has(.cm-workspace-page) .cm-model { color: #7a848c; font-size: 14px; }
+.block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"] { position: relative; max-width: 1220px; gap: 20px; margin: 12px auto 0; }
+.block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"] [data-testid="stButton"] button { border: 1px solid #e9eeeb; border-radius: 23px; min-height: 122px; padding: 22px 26px 22px 86px; background: #fff; position: relative; box-shadow: 0 5px 20px #18533b04; }
+.block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"] [data-testid="stButton"] button::before { content: '⌘'; position: absolute; left: 20px; top: 23px; display: grid; place-items: center; width: 56px; height: 62px; border-radius: 13px; background: #eaf7f0; color: #14715a; font-size: 29px; }
+.block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-child(2) [data-testid="stButton"] button::before { content: '▤'; }
+.block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-child(3) [data-testid="stButton"] button::before { content: '♧'; }
+.block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"] [data-testid="stButton"] button p { font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #77818a; line-height: 1.5; }
+.block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"] [data-testid="stButton"] button strong { color: #17232b; font-size: 16px; }
+.cm-workspace-art { position: fixed; top: 110px; width: 390px; height: 540px; background-size: 1600px 900px; background-repeat: no-repeat; pointer-events: none; mix-blend-mode: multiply; }
+.cm-workspace-art-left { left: calc((100vw - 1600px)/2); background-position: 0 -110px; }
+.cm-workspace-art-right { right: calc((100vw - 1600px)/2); background-position: -1210px -110px; }
+.block-container:has(.cm-workspace-page) .cm-footer { position: relative; font-size: 11px; margin-top: 20px; }
+[data-testid="element-container"]:has(> [data-testid="stMarkdown"] .cm-workspace-page) { height: 0; }
+@media(max-width: 1200px) { .cm-workspace-art { display: none; } }
+@media(max-width: 700px) { .block-container:has(.cm-workspace-page) .cm-heading { margin-top: 22px; } .block-container:has(.cm-workspace-page) .cm-heading p { font-size: 16px; } .block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"] [data-testid="stButton"] button { min-height: 100px; } }
+
+/* Request log reference. */
+.block-container:has(.cm-log-page) { max-width: 1500px; padding: 0 24px 26px; }
+[data-testid="stApp"]:has(.cm-log-page), [data-testid="stAppViewContainer"]:has(.cm-log-page) { background: #fcfdfc; color-scheme: light; --cm-bg: #fff; --cm-text: #142029; --cm-muted: #78838b; --cm-border: #e7ece9; --cm-surface: #f6f8f7; }
+.block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"] { max-width: none; width: 100%; margin: 0; gap: 18px; flex-direction: row; align-items: center; }
+.block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"]:has(.cm-log-filters) { align-items: flex-start; gap: 32px; }
+.block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"] > :is([data-testid="column"], [data-testid="stColumn"]) { min-width: 0; width: auto !important; }
+.block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"]:has(.cm-log-filters) > :is([data-testid="column"], [data-testid="stColumn"]):has(.cm-log-filters) { flex: 0 0 240px !important; }
+.block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"]:has(.cm-log-filters) > :is([data-testid="column"], [data-testid="stColumn"]):has(.cm-heading) { flex: 1 1 0 !important; }
+.block-container:has(.cm-log-page) .cm-heading { margin: 0; max-width: none; }
+.block-container:has(.cm-log-page) .cm-eyebrow { color: #236b57; font-size: 11px; letter-spacing: .8px; font-weight: 700; }
+.block-container:has(.cm-log-page) .cm-heading h1 { font-family: Arial, Helvetica, sans-serif; color: #111b26; font-size: 34px; font-weight: 750; letter-spacing: -1px; padding: 8px 0 12px; margin: 0; }
+.block-container:has(.cm-log-page) .cm-heading p { font-size: 15px; margin: 0; }
+.block-container:has(.cm-log-page) [data-testid="stTextInput"] :is([data-baseweb="input"], [data-baseweb="base-input"]),
+.block-container:has(.cm-log-page) [data-testid="stSelectbox"] [data-baseweb="select"] > div { background: #fff; color: #36434d; border-color: #e0e6e2; border-radius: 10px; }
+.block-container:has(.cm-log-page) [data-testid="stTextInput"] input { background: #fff; color: #36434d; height: 42px; font-size: 13px; }
+.block-container:has(.cm-log-page) [data-testid="stVerticalBlockBorderWrapper"]:has(> div > [data-testid="stVerticalBlock"] > div > [data-testid="stMarkdown"] .cm-log-filters) { min-height: 690px; padding: 14px 12px; background: #f9fbfa; border-color: #e5eae7; border-radius: 12px; }
+.block-container:has(.cm-log-page) :is([data-testid="column"], [data-testid="stColumn"]):has(.cm-log-filters) [data-testid="stButton"] button { min-height: 48px; padding: 12px; border: 0; box-shadow: none; background: transparent; color: #76828b; border-radius: 10px; }
+.block-container:has(.cm-log-page) :is([data-testid="column"], [data-testid="stColumn"]):has(.cm-log-filters) [data-testid="stButton"] button[kind="primary"] { background: #e8f2ee; color: #1a624e; }
+
+.block-container:has(.cm-log-page) [data-testid="stVerticalBlockBorderWrapper"]:has(> div > [data-testid="stVerticalBlock"] > div > [data-testid="stMarkdown"] .cm-log-row) { border-radius: 12px; background: #fff; border: 1px solid #e7ece9; padding: 10px 14px; }
+.block-container:has(.cm-log-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-log-row) { gap: 0; }
+.block-container:has(.cm-log-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-log-row) [data-testid="stButton"] button { border: 0; min-height: 20px; padding: 0; background: transparent; color: #17232d; box-shadow: none; }
+.block-container:has(.cm-log-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-log-row) [data-testid="stButton"] button p { font-weight: 650; font-size: 14px; }
+.block-container:has(.cm-log-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-log-row) [data-testid="stCaptionContainer"] p { font-size: 12px; margin: 0; color: #7a858e; }
+.block-container:has(.cm-log-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-log-row) [data-testid="stHorizontalBlock"] { gap: 14px; }
+.cm-history-icon { display: grid; place-items: center; width: 43px; height: 43px; border-radius: 13px; background: #eaf2ee; color: #146b54; font-size: 22px; }
+.cm-message-count { display: inline-block; border-radius: 7px; padding: 5px 9px; background: #eff5f2; color: #286856; font-size: 10px; white-space: nowrap; }
+.block-container:has(.cm-log-page) [data-testid="stPopover"] button { border: 0; background: transparent; color: #5e6e79; min-width: 28px; padding: 0; }
+.block-container:has(.cm-log-page) button:focus-visible { outline: 2px solid #1c745b !important; }
+[data-testid="element-container"]:has(> [data-testid="stMarkdown"] :is(.cm-log-page,.cm-log-filters,.cm-log-row)) { display: none; }
+@media(max-width: 900px) { .block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"]:has(.cm-log-filters) { flex-direction: column; } .block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"]:has(.cm-log-filters) > :is([data-testid="column"], [data-testid="stColumn"]) { width: 100% !important; flex: auto !important; } .block-container:has(.cm-log-page) [data-testid="stVerticalBlockBorderWrapper"]:has(> div > [data-testid="stVerticalBlock"] > div > [data-testid="stMarkdown"] .cm-log-filters) { min-height: 0; } }
+
+/* Native Streamlit widgets carry inline widths; constrain their actual content too. */
+.block-container:has(.cm-auth-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-account-card) :is([data-testid="stMarkdown"], [data-testid="stButton"]) { width: 100% !important; }
+.block-container:has(.cm-auth-page) :is([data-testid="column"], [data-testid="stColumn"]):has(.cm-top-action) :is([data-testid="stMarkdown"], [data-testid="stButton"]) { width: auto !important; }
+@media (min-width: 801px) and (max-width: 1400px) { .cm-reference-art { transform: scale(.8); transform-origin: bottom right; } }
+
+.block-container:has(.cm-log-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button p { color: inherit; font-family: Arial, Helvetica, sans-serif; font-size: 14px; }
+.block-container:has(.cm-log-page) :is([data-testid="column"], [data-testid="stColumn"]):has(.cm-log-filters) [data-testid="stButton"] button { justify-content: flex-start; text-align: left; }
+.block-container:has(.cm-log-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-log-filters) > div:nth-child(2) [data-testid="stButton"] button { background: #0b5b46; color: #fff; justify-content: center; }
+.block-container:has(.cm-log-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-log-row) [data-testid="stButton"] button { justify-content: flex-start; text-align: left; }
+.block-container:has(.cm-log-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-log-row) [data-testid="stVerticalBlock"] { gap: 4px; }
+.block-container:has(.cm-log-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-log-row) [data-testid="stButton"] { width: 100% !important; }
+.block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"]:has(.cm-log-filters) > :is([data-testid="column"], [data-testid="stColumn"]):has(.cm-log-filters) { flex-basis: 240px !important; }
+
+.cm-feature-icon { font-size: 0; background-image: var(--cm-feature-reference); background-repeat: no-repeat; background-size: 1600px 900px; background-position: -115px -590px; }
+.cm-landing-features > div:nth-child(2) .cm-feature-icon { background-position: -115px -671px; }
+.cm-landing-features > div:nth-child(3) .cm-feature-icon { background-position: -115px -751px; }
+.block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"] [data-testid="stButton"] button::before { font-size: 0; background-image: var(--cm-workspace-reference); background-size: 1600px 900px; background-position: -219px -702px; }
+.block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-child(2) [data-testid="stButton"] button::before { background-position: -631px -702px; }
+.block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-child(3) [data-testid="stButton"] button::before { background-position: -1043px -702px; }
+.block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"] [data-testid="stButton"] button::after { content: '→'; color: #6b7982; position: absolute; right: 22px; font-size: 24px; }
+.block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"] [data-testid="stButton"] button { padding-right: 56px; }
+.cm-workspace-art { mask-image: linear-gradient(to bottom, #000 0%, #000 85%, transparent 100%); }
+
+.block-container:has(.cm-log-page) [data-testid="stButton"] button [data-testid="stMarkdownContainer"] { color: inherit; }
+.block-container:has(.cm-log-page) [data-testid="stButton"] button p { font-size: 14px; }
+.block-container:has(.cm-log-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-log-row) [data-testid="stButton"] button p { font-size: 15px; }
+.cm-log-meta { display: flex; align-items: center; justify-content: flex-end; gap: 20px; color: #77838d; font-size: 12px; white-space: nowrap; }
+.cm-history-icon { font-size: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23146b54' stroke-width='1.8'%3E%3Cpath d='M20 11a8 8 0 01-8 8H5l-2 3v-9a9 9 0 118-9 8 8 0 019 7z'/%3E%3Ccircle cx='8' cy='11' r='.5'/%3E%3Ccircle cx='12' cy='11' r='.5'/%3E%3Ccircle cx='16' cy='11' r='.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: center; background-size: 21px; }
+.block-container:has(.cm-log-page) [data-testid="stPopover"] svg { display: none; }
+
+.block-container:has(.cm-signup-fields) .cm-reference-art { width: 370px; height: 400px; background-position: -515px -400px; }
+
+.block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"]:has(button[kind="primary"]:disabled):not(:has(.cm-log-filters)):not(:has(.cm-log-row)) [data-testid="stButton"] button { width: 44px; min-height: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 10px; }
+.block-container:has(.cm-log-page) button[kind="primary"]:disabled { background: #0b5b46; color: #fff; border-color: #0b5b46; opacity: 1; }
+
+.block-container:has(.cm-auth-page) [data-testid="stCheckbox"] label:has(input:not(:checked)) > span:first-child { background: #fff; border-color: #9aada3; }
+
+/* Account screens fit their contents into the current viewport rather than clipping a tall form. */
+html:has(.cm-auth-page), body:has(.cm-auth-page),
+[data-testid="stApp"]:has(.cm-auth-page), [data-testid="stAppViewContainer"]:has(.cm-auth-page) { height: 100dvh; overflow: hidden; }
+[data-testid="stAppViewContainer"]:has(.cm-auth-page) :is(section.main, [data-testid="stMain"]) {
+  height: 100dvh; max-height: 100dvh; overflow: hidden; scrollbar-gutter: auto;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+/* Restore the original centered account template, with stable field identities. */
 .block-container:has(.cm-auth-page) {
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 688px;
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 40px 24px;
+  --cm-auth-scale: min(1, calc((100dvh - 24px) / 700px));
+  box-sizing: border-box; width: calc(100vw / var(--cm-auth-scale)); max-width: 1500px;
+  min-height: 0; flex: 0 0 auto; margin: auto; padding: 12px clamp(20px, 3vw, 50px); zoom: var(--cm-auth-scale);
 }
-.block-container:has(.cm-auth-page) .cm-heading { margin-top: 0; }
-.block-container:has(.cm-auth-page) .cm-heading,
-.block-container:has(.cm-auth-page) [data-testid="stRadio"] { text-align: center; }
-.block-container:has(.cm-auth-page) [role="radiogroup"] { justify-content: center; }
-[data-testid="stElementContainer"]:has(> [data-testid="stMarkdown"] .cm-auth-page),
-[data-testid="element-container"]:has(> [data-testid="stMarkdown"] .cm-auth-page) { display: none; }
+@media(max-width: 800px) {
+  .block-container:has(.cm-auth-page) { width: calc(100vw / var(--cm-auth-scale)); max-width: 600px; padding: 12px 20px; }
+  .block-container:has(.cm-auth-page) [data-testid="column"]:has(.cm-login-intro),
+  .block-container:has(.cm-auth-page) [data-testid="stColumn"]:has(.cm-login-intro) { display: none; }
+}
+/* Keep the signed-in navbar pinned, with one consistent workspace width. */
+.block-container:not(:has(.cm-auth-page)) [data-testid="element-container"]:has(> iframe[title*="codementor_header"]),
+.block-container:not(:has(.cm-auth-page)) [data-testid="stElementContainer"]:has(> iframe[title*="codementor_header"]) {
+  position: sticky; top: 0; z-index: 100; background: var(--cm-bg);
+}
+.block-container:has(.cm-workspace-page) [data-testid="stChatMessage"] {
+  box-sizing: border-box; position: relative; max-width: 790px; width: 100%; margin: 22px auto 0;
+  padding: 28px; background: var(--cm-response-bg); border: 1px solid var(--cm-border); border-radius: 24px;
+}
+.block-container:has(.cm-workspace-page) [data-testid="stForm"]:has(.cm-compact-composer) { max-width: 790px; padding: 8px 12px; border-radius: 22px; }
+.block-container:has(.cm-workspace-page) [data-testid="stForm"]:has(.cm-compact-composer) [data-testid="stFormSubmitButton"] button { width: 44px; height: 44px; }
+.block-container:has(.cm-workspace-page) [data-testid="stForm"]:has(.cm-compact-composer) [data-testid="stHorizontalBlock"] { margin-top: 0; }
+/* Shared theme tokens must stay adaptive instead of forcing light surfaces. */
+[data-testid="stApp"]:has(:is(.cm-workspace-page,.cm-log-page)),
+[data-testid="stAppViewContainer"]:has(:is(.cm-workspace-page,.cm-log-page)) {
+  color-scheme: var(--cm-appearance);
+  --cm-bg: light-dark(#fbfdfc, #141a19); --cm-text: light-dark(#142029, #edf4f0);
+  --cm-border: light-dark(#e5ebe7, #34433d); --cm-muted: light-dark(#77818a, #a8b8af);
+  --cm-surface: light-dark(#f6f8f7, #1c2622); --cm-response-bg: light-dark(#fff, #1c2622);
+  background: var(--cm-bg); color: var(--cm-text);
+}
+.block-container:has(.cm-workspace-page) :is([data-testid="stForm"], [data-testid="stTextArea"] textarea, [data-testid="stTextArea"] [data-baseweb="textarea"]) { background: var(--cm-bg); color: var(--cm-text); border-color: var(--cm-border); }
+.block-container:has(.cm-workspace-page) :is(.cm-heading p,.cm-model,.cm-footer) { color: var(--cm-muted); }
+.block-container:has(.cm-workspace-page) .cm-eyebrow { background: var(--cm-accent-soft); color: var(--cm-accent); }
+.block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"] [data-testid="stButton"] button { background: var(--cm-response-bg); border-color: var(--cm-border); }
+.block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"] [data-testid="stButton"] button :is(p,strong) { color: var(--cm-text); }
+:root[data-cm-theme="dark"] .cm-workspace-art { opacity: .16; mix-blend-mode: screen; }
+.block-container:has(.cm-log-page) :is(.cm-heading h1, [data-testid="stButton"] button) { color: var(--cm-text); }
+.block-container:has(.cm-log-page) :is([data-baseweb="input"], [data-baseweb="base-input"], [data-testid="stTextInput"] input, [data-testid="stSelectbox"] [data-baseweb="select"] > div) { background: var(--cm-bg); color: var(--cm-text); border-color: var(--cm-border); }
+.block-container:has(.cm-log-page) [data-testid="stVerticalBlockBorderWrapper"]:has(> div > [data-testid="stVerticalBlock"] > div > [data-testid="stMarkdown"] .cm-log-row) { background: var(--cm-response-bg); border-color: var(--cm-border); }
+.block-container:has(.cm-log-page) [data-testid="stVerticalBlockBorderWrapper"]:has(> div > [data-testid="stVerticalBlock"] > div > [data-testid="stMarkdown"] .cm-log-filters) { background: var(--cm-surface); border-color: var(--cm-border); }
 
-/* Button-based account mode selection below the form. */
-.block-container:has(.cm-auth-page) [data-testid="stHorizontalBlock"] { flex-direction: row; }
-.block-container:has(.cm-auth-page) [data-testid="stHorizontalBlock"] > :is([data-testid="column"], [data-testid="stColumn"]) { min-width: 0; flex: 1 1 0 !important; width: auto !important; }
-.block-container:has(.cm-auth-page) [data-testid="stHorizontalBlock"] [data-testid="stButton"] button { justify-content: center; text-align: center; padding: 12px 16px; }
-.block-container:has(.cm-auth-page) [data-testid="stButton"] button[kind="primary"] { background: #246f60; color: #ffffff; border-color: #246f60; }
-.block-container:has(.cm-auth-page) [data-testid="stButton"] button[kind="primary"] p { color: inherit; }
-.block-container:has(.cm-auth-page) [data-testid="stButton"] button[kind="primary"]:hover { background: #1c594d; box-shadow: 0 4px 12px #246f6026; }
-[data-testid="stElementContainer"]:has(> [data-testid="stMarkdown"] .cm-auth-switch),
-[data-testid="element-container"]:has(> [data-testid="stMarkdown"] .cm-auth-switch) { display: none; }
+/* Compensate for Streamlit's measured inline widths when the account template scales. */
+.block-container:has(.cm-auth-page) :is([data-testid="stVerticalBlockBorderWrapper"], [data-testid="stVerticalBlock"], [data-testid="element-container"], [data-testid="stElementContainer"], [data-testid="stTextInput"], [data-testid="stFormSubmitButton"]) { width: 100% !important; max-width: 100%; }
+.block-container:has(.cm-auth-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-top-action) > div { width: auto !important; }
 
-/* Center the account submit action in both login and sign-up forms. */
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] {
-  display: flex;
-  justify-content: center;
-  width: 100%;
+.block-container:has(.cm-workspace-page) [data-testid="stFormSubmitButton"] button { color: #fff; }
+:root[data-cm-theme="dark"] .block-container:has(.cm-workspace-page) [data-testid="stMarkdownContainer"] pre :is(code, span) { color: #c3dfd4; }
+
+.block-container:has(.cm-auth-page) .row-widget { width: 100% !important; }
+
+/* Compact question entry, with stale suggestion cards removed during streaming. */
+.block-container:has(.cm-workspace-page) [data-testid="stForm"]:not(:has(.cm-compact-composer)) {
+  max-width: 700px; padding: 16px; border-radius: 24px;
 }
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stFormSubmitButton"] button {
-  width: auto;
-  min-width: 140px;
-  min-height: 44px;
-  padding: 12px 32px;
-  margin-inline: auto;
-  justify-content: center;
+.block-container:has(.cm-workspace-page) [data-testid="stTextArea"] textarea { font-size: 16px; padding: 12px 14px; }
+.block-container:has(.cm-workspace-page) [data-testid="stFormSubmitButton"] button { width: 44px; height: 44px; }
+.block-container:has(.cm-workspace-page) [data-testid="stFormSubmitButton"] button::after { font-size: 24px; }
+.block-container:has(.cm-workspace-page) [data-testid="stForm"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:last-child { flex: 0 0 44px !important; }
+.block-container:has(.cm-workspace-response) [data-testid="stHorizontalBlock"]:has([data-testid="stButton"]) { display: none !important; }
+
+/* Saved response Markdown headings follow the selected appearance. */
+.block-container:has(.cm-log-page) [data-testid="stMarkdownContainer"] :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--cm-text);
+  background: transparent;
 }
 
-/* Reference palette for account actions, including Streamlit focus states. */
-.block-container:has(.cm-auth-page) { --cm-account-green: #0b5b46; --cm-account-green-hover: #084a39; }
-.block-container:has(.cm-auth-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button {
-  background: var(--cm-account-green) !important;
-  color: #ffffff !important;
-  border-color: var(--cm-account-green) !important;
+/* Show the follow-up composer only after generation finishes, including failures. */
+.block-container:has(.cm-workspace-page):has(.cm-generating) [data-testid="stForm"] { display: none !important; }
+[data-testid="element-container"]:has(> [data-testid="stMarkdown"] .cm-generating),
+[data-testid="stElementContainer"]:has(> [data-testid="stMarkdown"] .cm-generating) { display: none; }
+
+/* Account notifications use an unscaled, dismissible modal. */
+body:has(.cm-auth-page) :is([data-testid="stDialog"], [data-testid="stModal"]) [role="dialog"] {
+  position: fixed; top: 24px; left: 50%; margin: 0; transform: translateX(-50%);
+  width: min(500px, calc(100vw - 32px)); max-width: calc(100vw - 32px);
+  background: #fff; color: #202426; border: 1px solid #e1e6e3; border-radius: 18px;
 }
-.block-container:has(.cm-auth-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button :is(p, [data-testid="stMarkdownContainer"]) { color: #ffffff !important; }
-.block-container:has(.cm-auth-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button:hover {
-  background: var(--cm-account-green-hover) !important;
-  border-color: var(--cm-account-green-hover) !important;
+body:has(.cm-auth-page) :is([data-testid="stDialog"], [data-testid="stModal"]) :is(h1,h2,h3,p) { color: #202426; }
+body:has(.cm-auth-page) :is([data-testid="stDialog"], [data-testid="stModal"]) [data-testid="stButton"] button {
+  background: #0b5b46; color: #fff; border: 1px solid #0b5b46; border-radius: 10px;
 }
-.block-container:has(.cm-auth-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button:is(:focus, :active) {
-  border-color: var(--cm-account-green) !important;
-  box-shadow: none !important;
-  outline: none !important;
+body:has(.cm-auth-page) :is([data-testid="stDialog"], [data-testid="stModal"]) [data-testid="stButton"] button :is(p,[data-testid="stMarkdownContainer"]) { color: #fff; }
+
+/* Inline code should read naturally without dark highlight chips. */
+.block-container:has(:is(.cm-workspace-page, .cm-log-page)) [data-testid="stMarkdownContainer"] :not(pre) > code {
+  background: transparent !important; color: inherit !important; border: 0; box-shadow: none; padding: 0;
 }
-.block-container:has(.cm-auth-page) :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button:focus-visible {
-  outline: 2px solid var(--cm-account-green) !important;
-  outline-offset: 3px;
+/* The star action is rendered in a portal outside the page's main container. */
+body:has(.cm-log-page) [data-testid="stPopoverBody"] {
+  background: #fff; color: #185e4b; border: 1px solid #dce9e2; border-radius: 12px;
+  box-shadow: 0 5px 20px #185e4b18; padding: 12px;
 }
-/* Keep length limits while hiding the visible character counters. */
-[data-testid="stForm"]:has(.cm-auth-form) [data-testid="stTextInput"] :is([data-testid="InputInstructions"], [data-testid="stInputInstructions"]) { display: none !important; }
+body:has(.cm-log-page) [data-testid="stPopoverBody"] [data-testid="stButton"] button {
+  background: #f0f7f3; color: #185e4b; border: 1px solid #c7dfd2;
+  border-radius: 9px; min-height: 40px; padding: 8px 16px;
+}
+body:has(.cm-log-page) [data-testid="stPopoverBody"] [data-testid="stButton"] button :is(p,[data-testid="stMarkdownContainer"]) { color: inherit; }
+body:has(.cm-log-page) [data-testid="stPopoverBody"] [data-testid="stButton"] button:hover { background: #e2f0e8; border-color: #327f64; }
+body:has(.cm-log-page) [data-testid="stPopoverBody"] [data-testid="stButton"] button:is(:focus,:active) { color: #185e4b; border-color: #327f64; box-shadow: none; }
+body:has(.cm-log-page) [data-testid="stPopoverBody"] [data-testid="stButton"] button:focus-visible { outline: 2px solid #327f64 !important; outline-offset: 2px; }
+
+/* Match the New Request action for starring and unstarring saved requests. */
+body:has(.cm-log-page) [data-testid="stPopoverBody"] [data-testid="stButton"] button {
+  width: 100%; min-height: 48px; padding: 12px 20px;
+  background: #0b5b46; color: #fff; border: 1px solid #0b5b46; border-radius: 10px;
+}
+body:has(.cm-log-page) [data-testid="stPopoverBody"] [data-testid="stButton"] button :is(p, [data-testid="stMarkdownContainer"]) { color: #fff; }
+body:has(.cm-log-page) [data-testid="stPopoverBody"] [data-testid="stButton"] button:hover { background: #084c3a; border-color: #084c3a; }
+body:has(.cm-log-page) [data-testid="stPopoverBody"] [data-testid="stButton"] button:is(:focus, :active) { color: #fff; background: #0b5b46; border-color: #0b5b46; }
+
+/* Remove Streamlit's dark inner popover surface and fill the action width. */
+body:has(.cm-log-page) [data-testid="stPopoverBody"],
+body:has(.cm-log-page) [data-testid="stPopoverBody"] > div {
+  background: #fff !important;
+}
+body:has(.cm-log-page) [data-testid="stPopoverBody"] :is([data-testid="stVerticalBlockBorderWrapper"], [data-testid="stVerticalBlock"], [data-testid="element-container"], [data-testid="stElementContainer"], .row-widget) {
+  width: 100% !important; max-width: 100%; background: transparent !important;
+}
+body:has(.cm-log-page) [data-testid="stPopoverBody"] [data-testid="stButton"] button {
+  width: 100% !important; background: #0b5b46 !important; color: #fff !important;
+  border-color: #0b5b46 !important;
+}
+body:has(.cm-log-page) [data-testid="stPopoverBody"] [data-testid="stButton"] button :is(p, [data-testid="stMarkdownContainer"]) {
+  color: #fff !important; background: transparent !important;
+}
+body:has(.cm-log-page) [data-testid="stPopoverBody"] [data-testid="stButton"] button:hover {
+  background: #084c3a !important; border-color: #084c3a !important;
+}
+
+/* Saved request titles inherit the active light/dark text color. */
+.block-container:has(.cm-log-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-log-row) [data-testid="stButton"] button {
+  color: var(--cm-text);
+}
+.block-container:has(.cm-log-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-log-row) [data-testid="stButton"] button :is(p, strong, [data-testid="stMarkdownContainer"]) {
+  color: var(--cm-text);
+}
+
+/* Streamlit marks previous elements stale during reruns; keep their normal contrast. */
+[data-testid="stApp"] :is([data-testid="element-container"], [data-testid="stElementContainer"])[data-stale="true"] {
+  opacity: 1 !important; animation: none !important; transition: none !important;
+}
+
+
+/* Native error dialogs and account messages must have readable text on white. */
+body:has(.cm-auth-page) :is([data-testid="stDialog"], [data-testid="stModal"]) [role="dialog"] { color-scheme: light; color: #202426; }
+body:has(.cm-auth-page) :is([data-testid="stDialog"], [data-testid="stModal"]) [role="dialog"] :is(div, span, h1, h2, h3, p, label) { color: #202426; }
+body:has(.cm-auth-page) :is([data-testid="stDialog"], [data-testid="stModal"]) [data-testid="stButton"] button :is(div, span, p) { color: #fff; }

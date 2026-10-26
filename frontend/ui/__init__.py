@@ -22,7 +22,13 @@ def render_shell(*, show_navigation: bool = True) -> str:
         event = st.session_state.get("main_navigation")
         if isinstance(event, dict) and event != st.session_state.get("last_header_event"):
             st.session_state.last_header_event = event
-            if event.get("page") in ("workspace", "logs", "logout"):
+            if event.get("page") == "home":
+                # Reset only the current view; saved SQLite history remains intact.
+                for key in ("answer", "has_asked", "response_error", "active_request",
+                            "prompt", "draft", "submitted_question"):
+                    st.session_state.pop(key, None)
+                st.session_state.page = "workspace"
+            elif event.get("page") in ("workspace", "logs", "logout"):
                 if event["page"] == "logs" and st.session_state.page != "logs":
                     st.session_state.pop("request_log_data", None)
                 st.session_state.page = event["page"]
