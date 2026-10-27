@@ -477,3 +477,14 @@ body:has(.cm-auth-page) :is([data-testid="stDialog"], [data-testid="stModal"]) [
   .block-container:has(:is(.cm-workspace-page,.cm-log-page)) [data-testid="stMarkdownContainer"] { overflow-wrap: anywhere; }
   .block-container:has(:is(.cm-workspace-page,.cm-log-page)) pre { max-width: 100%; overflow-x: auto; }
 }
+
+/* Fit the signed-in welcome screen into a short desktop viewport. */
+.block-container:has(.cm-workspace-page) .cm-eyebrow { display: none; }
+@media (min-width: 701px) and (max-height: 900px) {
+  .block-container:has(.cm-workspace-page) { padding-top: 0; padding-bottom: 8px; }
+  .block-container:has(.cm-workspace-page) .cm-heading { margin: -74px auto 8px !important; }
+  .block-container:has(.cm-workspace-page) .cm-heading h1 { padding: 14px 0 8px; }
+  .block-container:has(.cm-workspace-page) [data-testid="stForm"]:not(:has(.cm-compact-composer)) { padding: 12px; }
+  .block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"]:has([data-testid="stButton"]):not(:has([data-testid="stFormSubmitButton"])) { margin-top: 8px; }
+  .block-container:has(.cm-workspace-page) [data-testid="stHorizontalBlock"]:has([data-testid="stButton"]):not(:has([data-testid="stFormSubmitButton"])) [data-testid="stButton"] button { min-height: 112px; padding-top: 16px; padding-bottom: 16px; }
+}

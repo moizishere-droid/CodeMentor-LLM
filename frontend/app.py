@@ -226,7 +226,7 @@ def render_workspace() -> None:
         with intro.container():
             st.markdown('<span class="cm-workspace-home" aria-hidden="true"></span>', unsafe_allow_html=True)
             render_heading(
-                "A CLEARER WAY TO CODE",
+                "",
                 "Let’s work it out, together.",
                 "Untangle a bug, explore an idea, or build something new.",
             )
