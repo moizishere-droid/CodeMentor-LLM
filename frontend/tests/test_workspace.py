@@ -41,6 +41,52 @@ def test_suggestion_fills_prompt_without_sending():
     assert app.text_area[0].value == "Write a Python function to reverse a string."
 
 
+def test_captured_first_question_runs_when_submit_widget_is_recreated():
+    app = workspace()
+    # Reproduce the callback state before the new compact form is rendered.
+    app.session_state.submitted_question = "Explain doubly linked lists"
+    app.session_state.prompt = ""
+    app.session_state.has_asked = True
+    response = MagicMock()
+    response.__enter__.return_value = response
+    response.iter_lines.return_value = ['data: {"token": "A doubly linked list has previous and next pointers."}', "data: [DONE]"]
+    with patch("requests.post", return_value=response) as post:
+        app.run()
+        assert post.call_count == 1
+        assert post.call_args.kwargs["json"]["prompt"] == "Explain doubly linked lists"
+        app.run()
+        assert post.call_count == 1
+    assert not app.exception
+    assert "previous and next" in app.session_state.answer
+    content = "\n".join(item.value for item in app.markdown)
+    assert "cm-workspace-page" in content
+    assert "cm-workspace-art-left" in content
+    assert "cm-workspace-art-right" in content
+
+
+def test_question_survives_rerun_before_first_response_token():
+    import streamlit as st
+
+    app = workspace()
+    response = MagicMock()
+    response.__enter__.return_value = response
+    attempts = []
+
+    def interrupted_stream(**kwargs):
+        attempts.append(True)
+        if len(attempts) == 1:
+            st.rerun()
+        return iter(['data: {"token": "Recovered answer"}', 'data: [DONE]'])
+
+    response.iter_lines.side_effect = interrupted_stream
+    with patch("requests.post", return_value=response):
+        submit(app, "Explain linked lists")
+    assert not app.exception
+    assert app.session_state.answer == "Recovered answer"
+    assert "submitted_question" not in app.session_state
+    assert len(attempts) == 2
+
+
 def test_streaming_contract_and_response_survives_rerender():
     response = MagicMock()
     response.__enter__.return_value = response

@@ -26,8 +26,14 @@ nav { min-height: 86px; padding: 0 14px; }
 .links button { font-size: 15px; min-height: 48px; padding: 0 18px; border-radius: 15px; }
 .links .icon { font-size: 23px; }
 .appearance button { padding: 0; }
-@media(max-width: 680px) { .brand { font-size: 17px; } .brand-symbol { font-size: 25px; margin-right: 0; } .links button { padding: 0; width: 36px; } nav { padding: 0; gap: 6px; } .label { display: none; } }
+@media(max-width: 900px) { .brand { font-size: 17px; } .brand-symbol { font-size: 25px; margin-right: 0; } .links button { padding: 0; width: 36px; } nav { padding: 0; gap: 6px; } .label { display: none; } }
 :root[data-page="logs"] nav { min-height: 66px; }
+@media(max-width: 520px) {
+  nav, :root[data-page="logs"] nav { flex-direction: column; justify-content: center; gap: 4px; min-height: 124px; padding: 8px 0; }
+  .brand { width: auto; min-height: 36px; flex-shrink: 0; margin: 0; }
+  .links { width: 100%; justify-content: space-around; gap: 4px; }
+  .links button { width: 44px; min-width: 44px; }
+}
 </style></head>
 <body>
 <nav aria-label="Main navigation"><button id="home" class="brand" aria-label="CodeMentor-LLM home"><span class="brand-symbol" aria-hidden="true">&lt;/&gt;</span>Code Mentor LLM</button><div class="links">
@@ -49,7 +55,7 @@ nav { min-height: 86px; padding: 0 14px; }
   const send = (type, payload = {}) => window.parent.postMessage({isStreamlitMessage: true, type, ...payload}, '*');
   let lastFrameHeight = null;
   const syncFrameHeight = () => {
-    const height = page === 'logs' ? 80 : 108;
+    const height = window.innerWidth <= 520 ? 132 : (page === 'logs' ? 80 : 108);
     if (height === lastFrameHeight) return;
     lastFrameHeight = height;
     send('streamlit:setFrameHeight', {height});
@@ -136,6 +142,7 @@ nav { min-height: 86px; padding: 0 14px; }
     queueChange();
   };
   send('streamlit:componentReady', {apiVersion: 1});
+  window.addEventListener('resize', syncFrameHeight);
   syncFrameHeight();
 })();
 </script></body></html>

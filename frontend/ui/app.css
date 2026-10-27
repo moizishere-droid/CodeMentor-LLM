@@ -450,3 +450,30 @@ body:has(.cm-log-page) [data-testid="stPopoverBody"] [data-testid="stButton"] bu
 body:has(.cm-auth-page) :is([data-testid="stDialog"], [data-testid="stModal"]) [role="dialog"] { color-scheme: light; color: #202426; }
 body:has(.cm-auth-page) :is([data-testid="stDialog"], [data-testid="stModal"]) [role="dialog"] :is(div, span, h1, h2, h3, p, label) { color: #202426; }
 body:has(.cm-auth-page) :is([data-testid="stDialog"], [data-testid="stModal"]) [data-testid="stButton"] button :is(div, span, p) { color: #fff; }
+
+/* Keep composer controls on one row when Streamlit stacks other columns. */
+.block-container:has(.cm-workspace-page) [data-testid="stForm"] [data-testid="stHorizontalBlock"] { flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 12px; }
+.block-container:has(.cm-workspace-page) [data-testid="stForm"] [data-testid="stHorizontalBlock"] > :is([data-testid="column"], [data-testid="stColumn"]) { min-width: 0; width: auto !important; flex: 1 1 0 !important; }
+.block-container:has(.cm-workspace-page) [data-testid="stForm"] [data-testid="stHorizontalBlock"] > :is([data-testid="column"], [data-testid="stColumn"]):last-child { flex: 0 0 44px !important; }
+@media(max-width: 900px) {
+  .block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"]:has(.cm-log-filters) > :is([data-testid="column"], [data-testid="stColumn"]):has(.cm-log-filters) { flex-basis: auto !important; }
+}
+@media(max-width: 640px) {
+  .block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"]:has(> :is([data-testid="column"], [data-testid="stColumn"]) .cm-heading):not(:has(.cm-log-filters)) { flex-direction: column; align-items: stretch; }
+  .block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"]:has(> :is([data-testid="column"], [data-testid="stColumn"]) .cm-heading):not(:has(.cm-log-filters)) > :is([data-testid="column"], [data-testid="stColumn"]) { width: 100% !important; flex: auto !important; }
+  .block-container:has(.cm-log-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-log-filters) { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; }
+  .block-container:has(.cm-log-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-log-filters) > div:has(button[kind="primary"]):nth-child(2) { grid-column: 1 / -1; }
+  .block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"]:has(.cm-history-icon):not(:has(.cm-log-filters)) { display: grid; grid-template-columns: 36px minmax(0,1fr) 28px; gap: 8px; }
+  .block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"]:has(.cm-history-icon):not(:has(.cm-log-filters)) > :is([data-testid="column"], [data-testid="stColumn"]) { width: 100% !important; min-width: 0; }
+  .block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"]:has(.cm-history-icon):not(:has(.cm-log-filters)) > :nth-child(3) { grid-column: 2; grid-row: 2; }
+  .block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"]:has(.cm-history-icon):not(:has(.cm-log-filters)) > :nth-child(4) { grid-column: 3; grid-row: 1; }
+  .cm-log-meta { justify-content: flex-start; }
+  .block-container:has(:is(.cm-workspace-page,.cm-log-page)) { padding-inline: 16px; }
+  .block-container:has(.cm-workspace-page) .cm-heading { margin-top: 0; }
+  .block-container:has(.cm-workspace-page) [data-testid="stChatMessage"] { padding: 16px; gap: 10px; }
+  .block-container:has(.cm-log-page) [data-testid="stHorizontalBlock"]:has(.cm-log-row),
+  .block-container:has(.cm-log-page) [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] .cm-log-row) [data-testid="stHorizontalBlock"] { flex-wrap: wrap; }
+  .cm-log-meta { white-space: normal; gap: 8px; flex-wrap: wrap; }
+  .block-container:has(:is(.cm-workspace-page,.cm-log-page)) [data-testid="stMarkdownContainer"] { overflow-wrap: anywhere; }
+  .block-container:has(:is(.cm-workspace-page,.cm-log-page)) pre { max-width: 100%; overflow-x: auto; }
+}

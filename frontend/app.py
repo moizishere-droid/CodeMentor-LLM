@@ -260,7 +260,14 @@ def render_workspace() -> None:
                 "Send question", type="primary", help="Send question", on_click=prepare_question
             )
 
-    question = st.session_state.pop("submitted_question", prompt) if submitted else ""
+    # The submit callback runs before this render. Switching from the welcome
+    # composer to the compact composer can recreate the submit widget, so its
+    # transient return value must not decide whether a captured question runs.
+    # Keep this durable until a result or an error is recorded. A component
+    # rerun can interrupt streaming, including before the first token arrives.
+    pending_question = st.session_state.get("submitted_question")
+    submitted = pending_question is not None or submitted
+    question = pending_question if pending_question is not None else (prompt if submitted else "")
 
     suggestions_area = st.empty()
     if not has_asked:
@@ -300,6 +307,7 @@ def render_workspace() -> None:
             generation_indicator.empty()
         if "response_error" in st.session_state:
             feedback_area.error(st.session_state.response_error)
+        st.session_state.pop("submitted_question", None)
 
     if has_asked or submitted:
         st.markdown(
